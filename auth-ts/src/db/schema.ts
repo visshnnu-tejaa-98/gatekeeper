@@ -49,3 +49,12 @@ export const applicationsTable = pgTable("applications", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
 });
+
+export const shortCodesTable = pgTable("shortcodes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => usersTable.id),
+  shortcode: varchar("short_code", { length: 6 }).notNull(),
+  clientId: text("client_id").notNull(),
+});

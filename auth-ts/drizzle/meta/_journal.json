@@ -57,6 +57,34 @@
       "when": 1780906439900,
       "tag": "0007_wet_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1781013831968,
+      "tag": "0008_sparkling_wild_child",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781047692417,
+      "tag": "0009_nappy_wrecker",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1781047881452,
+      "tag": "0010_bored_thor",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1781047970357,
+      "tag": "0011_cold_proteus",
+      "breakpoints": true
     }
   ]
 }

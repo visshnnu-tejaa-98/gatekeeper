@@ -13,6 +13,7 @@ import { validate } from "../../common/zod/zod.midleware";
 import {
   forgotPasswordSchema,
   loginSchema,
+  loginUserQuerySchema,
   registerSchema,
   resetPasswordSchemaFromBody,
   resetPasswordSchemaFromParams,
@@ -26,7 +27,12 @@ const router = express.Router();
 
 router.post("/register", validate(registerSchema), registerUser);
 router.post("/verify", validate(verifyEmailSchema), verifyUserEmail);
-router.post("/login", validate(loginSchema), loginUser);
+router.post(
+  "/login",
+  validate(loginSchema),
+  validate(loginUserQuerySchema, "query"),
+  loginUser,
+);
 router.get("/profile", restrictToAuthenticatedUser(), getUserProfile);
 router.post("/logout", restrictToAuthenticatedUser(), logoutUser);
 router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);

@@ -26,18 +26,15 @@ const verifyUserEmail = async (req: Request, res: Response) => {
 
 const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  const { clientId } = req.query;
+  const clientId = req.query.client_id as string;
 
-  const { id: userId, accessToken } = await login({
+  const data = await login({
     email,
     password,
     clientId,
   });
 
-  ApiResponse.created(res, "User loggedin successfully", {
-    accessToken,
-    id: userId,
-  });
+  ApiResponse.created(res, "User loggedin successfully", data);
 };
 
 const getUserProfile = async (req: Request, res: Response) => {

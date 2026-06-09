@@ -46,6 +46,12 @@ const loginSchema = z.object({
 
 type LoginSchemaType = z.infer<typeof loginSchema>;
 
+const loginUserQuerySchema = z.object({
+  client_id: z.string(),
+});
+
+type LoginUserQuerySchemaType = z.infer<typeof loginUserQuerySchema>;
+
 const forgotPasswordSchema = z.object({
   email: z.string().email().lowercase().describe("Email of the registrant"),
 });
@@ -95,6 +101,7 @@ export {
   resetPasswordSchemaFromBody,
   resetPasswordSchemaFromParams,
   uploadAvatarSchema,
+  loginUserQuerySchema,
 };
 export type {
   RegisterInputType,
@@ -104,4 +111,5 @@ export type {
   ResetPasswordSchemaFromBodyType,
   ResetPasswordSchemaFromParamsType,
   UploadAvatarSchemaType,
+  LoginUserQuerySchemaType,
 };

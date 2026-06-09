@@ -1,6 +1,10 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import db from "../../../db";
-import { usersTable } from "../../../db/schema";
+import {
+  applicationsTable,
+  shortCodesTable,
+  usersTable,
+} from "../../../db/schema";
 import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
 
 type InsertUserServicePayload = {
@@ -10,13 +14,30 @@ type InsertUserServicePayload = {
   verificationToken: string;
 };
 
+type UserLookup =
+  | {
+      email: string;
+      id?: never;
+    }
+  | {
+      id: string;
+      email?: never;
+    };
+
+type UserUpdatePayload = Partial<typeof usersTable.$inferInsert>;
+
+type addNewShortCodeProps = {
+  userId: string;
+  clientId: string;
+  shortCode: string;
+};
+
 const checkUserWithEmailExists = async (email: string) => {
   const userExists = await db
     .select()
     .from(usersTable)
     .where(eq(usersTable.email, email));
   if (userExists.length === 0) return null;
-
   return userExists[0];
 };
 
@@ -162,6 +183,80 @@ const uploadAvatarInDB = async (userId: string, avatarUrl: string) => {
   if (!user) throw new NotFoundError("User not found");
   return user;
 };
+
+const updateUserInfo = async (
+  lookup: UserLookup,
+  payload: UserUpdatePayload,
+) => {
+  const condition =
+    lookup.id ?
+      eq(usersTable.id, lookup.id)
+    : eq(usersTable.email, lookup.email!);
+
+  const updateUsers = await db
+    .update(usersTable)
+    .set(payload)
+    .where(condition)
+    .returning({
+      id: usersTable.id,
+      email: usersTable.email,
+      isVerified: usersTable.isVerified,
+      resetToken: usersTable.resetToken,
+      avatarUrl: usersTable.avatar,
+    });
+
+  if (updateUsers.length === 0) throw new BadRequestError();
+
+  const updatedUser = updateUsers[0];
+  if (!updatedUser) throw new NotFoundError("User not found");
+  return updatedUser;
+};
+
+const addNewShortCode = async (props: addNewShortCodeProps) => {
+  const { userId, clientId, shortCode } = props;
+  const existingShortCodes = await db
+    .select({
+      shortCodeId: shortCodesTable.id,
+      userId: shortCodesTable.userId,
+      shortcode: shortCodesTable.shortcode,
+      clientId: shortCodesTable.clientId,
+    })
+    .from(shortCodesTable)
+    .where(
+      and(
+        eq(shortCodesTable.userId, userId),
+        eq(shortCodesTable.clientId, clientId),
+      ),
+    )
+    .limit(1);
+
+  const existingShortCode = existingShortCodes[0] || null;
+
+  if (!existingShortCode) {
+    const newShortCode = await db
+      .insert(shortCodesTable)
+      .values({ shortcode: shortCode, userId, clientId })
+      .returning({ shortCode: shortCodesTable.shortcode });
+
+    if (!newShortCode || newShortCode.length === 0) {
+      throw new NotFoundError("Error creating a new shortcode");
+    }
+    return newShortCode[0];
+  }
+
+  const updatedRows = await db
+    .update(shortCodesTable)
+    .set({ shortcode: shortCode })
+    .where(eq(shortCodesTable.id, existingShortCode.shortCodeId))
+    .returning({ shortCode: shortCodesTable.shortcode });
+
+  if (!updatedRows || updatedRows.length === 0) {
+    throw new NotFoundError("Error updating the existing shortcode");
+  }
+
+  return updatedRows[0];
+};
+
 export {
   checkUserWithEmailExists,
   insertUser,
@@ -174,4 +269,6 @@ export {
   updateUserWithNewPassword,
   getUserDetailsByUserId,
   uploadAvatarInDB,
+  updateUserInfo,
+  addNewShortCode,
 };

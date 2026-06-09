@@ -1,0 +1,2 @@
+ALTER TABLE "shortcodes" ADD COLUMN "client_id" varchar NOT NULL;--> statement-breakpoint
+ALTER TABLE "shortcodes" ADD CONSTRAINT "shortcodes_client_id_applications_client_id_fk" FOREIGN KEY ("client_id") REFERENCES "public"."applications"("client_id") ON DELETE no action ON UPDATE no action;

@@ -9,6 +9,7 @@ import {
 import {
   AccessTokenPayload,
   generateAccessToken,
+  generateRandomString,
   generateRefeshToken,
   generateResetToken,
   generateSalt,
@@ -19,6 +20,7 @@ import {
   verifyResetToken,
 } from "../../common/utils/jwt";
 import {
+  addNewShortCode,
   checkUserWithEmailExists,
   getUserByEmailVerifyToken,
   getUserByResetToken,
@@ -26,6 +28,7 @@ import {
   insertUser,
   logoutUser,
   updateUserAfterEmailVerification,
+  updateUserInfo,
   updateUserWithNewPassword,
   updateUserWithRefreshToken,
   updateUserWithResetToken,
@@ -112,7 +115,7 @@ const login = async ({
 }: {
   email: string;
   password: string;
-  clientId?: string;
+  clientId?: string | undefined;
 }) => {
   const user = await checkUserWithEmailExists(email);
 
@@ -133,25 +136,31 @@ const login = async ({
     role: user.role,
   };
 
-  const accessToken = generateAccessToken(claims);
-  const refreshToken = generateRefeshToken({ id: user.id, role: user.role });
-  const hashedRefreshToken = hashToken(refreshToken);
+  if (!clientId) {
+    const accessToken = generateAccessToken(claims);
+    const refreshToken = generateRefeshToken({ id: user.id, role: user.role });
+    const hashedRefreshToken = hashToken(refreshToken);
 
-  const updatedUser = await updateUserWithRefreshToken(
-    hashedRefreshToken,
-    email,
-  );
+    const updatedUser = await updateUserWithRefreshToken(
+      hashedRefreshToken,
+      email,
+    );
 
-  if (!clientId)
     return {
       id: updatedUser.id,
       accessToken,
     };
-
-  // const s
+  }
+  const shortCode = generateRandomString(3);
+  const createdShortCode = await addNewShortCode({
+    shortCode,
+    userId: user.id,
+    clientId,
+  });
 
   return {
-    shortcode: "1234567",
+    shortCode,
+    createdShortCode,
   };
 };
 
