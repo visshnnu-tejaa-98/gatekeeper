@@ -22,6 +22,7 @@ import {
 import {
   addNewShortCode,
   checkUserWithEmailExists,
+  getRedirectUriByClientId,
   getUserByEmailVerifyToken,
   getUserByResetToken,
   getUserDetailsByUserId,
@@ -158,9 +159,12 @@ const login = async ({
     clientId,
   });
 
+  const { redirectUri } = await getRedirectUriByClientId(clientId);
+  const redirectUriWithShortcode = `${redirectUri}?shortcode=${shortCode}`;
+
   return {
     shortCode,
-    createdShortCode,
+    redirectUriWithShortcode,
   };
 };
 

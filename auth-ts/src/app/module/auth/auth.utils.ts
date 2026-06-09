@@ -257,6 +257,17 @@ const addNewShortCode = async (props: addNewShortCodeProps) => {
   return updatedRows[0];
 };
 
+const getRedirectUriByClientId = async (clientId: string) => {
+  const redirectUris = await db
+    .select({ redirectUri: applicationsTable.redirectUri })
+    .from(applicationsTable)
+    .where(eq(applicationsTable.clientId, clientId));
+  if (redirectUris.length === 0) throw new BadRequestError();
+  const redirectUri = redirectUris[0];
+  if (!redirectUri) throw new NotFoundError("RedirectUri not found");
+  return redirectUri;
+};
+
 export {
   checkUserWithEmailExists,
   insertUser,
@@ -271,4 +282,5 @@ export {
   uploadAvatarInDB,
   updateUserInfo,
   addNewShortCode,
+  getRedirectUriByClientId,
 };
