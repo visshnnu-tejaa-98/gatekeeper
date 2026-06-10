@@ -166,8 +166,8 @@ const login = async ({
   };
 };
 
-const logout = async () => {
-  const status = await logoutUser();
+const logout = async (userId: string) => {
+  const status = await logoutUser(userId);
   return status;
 };
 

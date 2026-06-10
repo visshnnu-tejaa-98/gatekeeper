@@ -111,9 +111,12 @@ const updateUserWithRefreshToken = async (
   return user;
 };
 
-const logoutUser = async () => {
+const logoutUser = async (userId: string) => {
   try {
-    await db.update(usersTable).set({ refreshToken: null });
+    await db
+      .update(usersTable)
+      .set({ refreshToken: null })
+      .where(eq(usersTable.id, userId));
   } catch (err) {
     throw new BadRequestError("Failed to logout the user");
   }

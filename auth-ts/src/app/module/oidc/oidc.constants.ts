@@ -8,7 +8,7 @@ const JWKS_URI = `${env.BASE_URL}/o/jwks.json`;
 
 export const SERVICE_DISCOVERY_ENDPOINTS = {
   issuer: ISSUER,
-  authorization_enpoint: AUTHORIZATION_ENDPOINT,
+  authorization_endpoint: AUTHORIZATION_ENDPOINT,
   token_endpoint: TOKEN_ENDPOINT,
   userinfo_endpoint: USERINFO_ENDPOINT,
   jwks_uri: JWKS_URI,

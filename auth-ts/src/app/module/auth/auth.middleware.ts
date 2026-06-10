@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { UnauthorizedError } from "../../common/utils/api-error";
 import { verifyAccessToken } from "../../common/utils/jwt";
+import { ADMIN, SUPER_ADMIN } from "../../common/constants";
 
 interface AuthUser {
   iss: string;
@@ -56,7 +57,7 @@ const adminOnly = () => {
       throw new UnauthorizedError("Authentication Required");
     }
 
-    if (req.user.role !== "admin") {
+    if (req.user.role !== ADMIN) {
       throw new UnauthorizedError("Admin access required");
     }
     next();
@@ -69,7 +70,7 @@ const superAdminOnly = () => {
       throw new UnauthorizedError("Authentication Required");
     }
 
-    if (req.user.role !== "superAdmin") {
+    if (req.user.role !== SUPER_ADMIN) {
       throw new UnauthorizedError("Super Admin access required");
     }
     next();

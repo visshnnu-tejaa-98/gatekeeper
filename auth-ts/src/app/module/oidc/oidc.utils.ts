@@ -65,14 +65,16 @@ const deleteClientById = async (applicationId: string) => {
     .where(eq(applicationsTable.id, applicationId))
     .returning({ id: applicationsTable.id });
 
+  console.log({ deletedItems });
+
   if (deletedItems.length === 0)
     throw new BadRequestError(
       `Client Application not found with ${applicationId}`,
     );
-  let deletedApplicationId = applicationId[0];
+  let deletedApplicationId = deletedItems[0];
   if (!deletedApplicationId)
     throw new BadRequestError(
-      `Something went wrong in devleting the client appliction with id: ${applicationId}`,
+      `Something went wrong in deleting the client application with id: ${applicationId}`,
     );
   return deletedApplicationId;
 };

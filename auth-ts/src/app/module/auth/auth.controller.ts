@@ -49,7 +49,8 @@ const getUserProfile = async (req: Request, res: Response) => {
 };
 
 const logoutUser = async (req: Request, res: Response) => {
-  await logout();
+  const { sub: userId } = req.user;
+  await logout(userId!);
   ApiResponse.success(res, "User logout successfully");
 };
 

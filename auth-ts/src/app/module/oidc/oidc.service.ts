@@ -51,9 +51,8 @@ const registerNewClient = async (props: registerClientProps) => {
 };
 
 const deleteClientApplicationById = async (applicationId: string) => {
-  const isDeleted = await deleteClientById(applicationId);
-  console.log({ isDeleted });
-  return isDeleted;
+  const deletedItem = await deleteClientById(applicationId);
+  return deletedItem;
 };
 
 const gestUserAccessToken = async (clientSecret: string, shortCode: string) => {
