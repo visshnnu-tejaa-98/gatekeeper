@@ -85,6 +85,12 @@ type ResetPasswordSchemaFromParamsType = z.infer<
   typeof resetPasswordSchemaFromParams
 >;
 
+const refreshTokenSchema = z.object({
+  refreshToken: z.string().trim().nonempty().describe("Refresh token"),
+});
+
+type RefreshTokenSchemaType = z.infer<typeof refreshTokenSchema>;
+
 const uploadAvatarSchema = z
   .object({
     size: z.number(),
@@ -109,6 +115,7 @@ export {
   uploadAvatarSchema,
   loginUserQuerySchema,
   verifyEmailPayloadSchema,
+  refreshTokenSchema,
 };
 export type {
   RegisterInputType,
@@ -120,4 +127,5 @@ export type {
   UploadAvatarSchemaType,
   LoginUserQuerySchemaType,
   VerifyEmailPayloadSchemaType,
+  RefreshTokenSchemaType,
 };

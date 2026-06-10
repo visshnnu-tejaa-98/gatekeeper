@@ -5,6 +5,7 @@ import {
   login,
   logout,
   profile,
+  refreshUserToken,
   register,
   resetUserPassword,
   uploadAvatar,
@@ -75,6 +76,12 @@ const resetPassword = async (req: Request, res: Response) => {
   ApiResponse.success(res, "Password reset successfully", user);
 };
 
+const refreshToken = async (req: Request, res: Response) => {
+  const { refreshToken: token } = req.body;
+  const tokens = await refreshUserToken(token);
+  ApiResponse.success(res, "Token refreshed successfully", tokens);
+};
+
 const uploadUserAvatar = async (req: Request, res: Response) => {
   const userId = req.user.sub;
   const response = await uploadAvatar(userId!, req.file!);
@@ -90,6 +97,7 @@ export {
   forgotPassword,
   resetPassword,
   getUserProfile,
+  refreshToken,
   uploadUserAvatar,
   verifyEmailRequest,
 };

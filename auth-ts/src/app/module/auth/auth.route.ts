@@ -9,12 +9,14 @@ import {
   resetPassword,
   uploadUserAvatar,
   verifyEmailRequest,
+  refreshToken,
 } from "./auth.controller";
 import { validate } from "../../common/zod/zod.midleware";
 import {
   forgotPasswordSchema,
   loginSchema,
   loginUserQuerySchema,
+  refreshTokenSchema,
   registerSchema,
   resetPasswordSchemaFromBody,
   resetPasswordSchemaFromParams,
@@ -55,6 +57,7 @@ router.post(
   validate(resetPasswordSchemaFromParams, "query"),
   resetPassword,
 );
+router.post("/refresh", validate(refreshTokenSchema), refreshToken);
 router.post(
   "/upload",
   restrictToAuthenticatedUser(),

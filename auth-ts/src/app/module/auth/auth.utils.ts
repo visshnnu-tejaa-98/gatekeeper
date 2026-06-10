@@ -5,7 +5,7 @@ import {
   shortCodesTable,
   usersTable,
 } from "../../../db/schema";
-import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../../common/utils/api-error";
 
 type InsertUserServicePayload = {
   name: string;
@@ -269,6 +269,25 @@ const getRedirectUriByClientId = async (clientId: string) => {
   return redirectUri;
 };
 
+const getUserByRefreshToken = async (hashedToken: string) => {
+  const users = await db
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+      name: usersTable.name,
+      role: usersTable.role,
+      avatar: usersTable.avatar,
+      isVerified: usersTable.isVerified,
+    })
+    .from(usersTable)
+    .where(eq(usersTable.refreshToken, hashedToken));
+
+  if (users.length === 0) throw new UnauthorizedError("Invalid refresh token");
+  const user = users[0];
+  if (!user) throw new UnauthorizedError("Invalid refresh token");
+  return user;
+};
+
 export {
   checkUserWithEmailExists,
   insertUser,
@@ -284,4 +303,5 @@ export {
   updateUserInfo,
   addNewShortCode,
   getRedirectUriByClientId,
+  getUserByRefreshToken,
 };

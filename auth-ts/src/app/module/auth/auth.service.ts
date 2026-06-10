@@ -17,6 +17,7 @@ import {
   hash,
   hashToken,
   verifyEmailToken,
+  verifyRefreshToken,
   verifyResetToken,
 } from "../../common/utils/jwt";
 import {
@@ -24,6 +25,7 @@ import {
   checkUserWithEmailExists,
   getRedirectUriByClientId,
   getUserByEmailVerifyToken,
+  getUserByRefreshToken,
   getUserByResetToken,
   getUserDetailsByUserId,
   insertUser,
@@ -264,6 +266,32 @@ const uploadAvatar = async (userId: string, file: Express.Multer.File) => {
   }
 };
 
+const refreshUserToken = async (incomingRefreshToken: string) => {
+  const hashedToken = hashToken(incomingRefreshToken);
+  const user = await getUserByRefreshToken(hashedToken);
+
+  // Verify JWT validity (throws if expired or tampered)
+  verifyRefreshToken(incomingRefreshToken);
+
+  const claims: AccessTokenPayload = {
+    iss: env.ISSUER_URL || "http://localhost:9000",
+    sub: user.id.toString(),
+    email: user.email,
+    email_verified: user.isVerified ?? false,
+    name: user.name,
+    picture: user.avatar ?? "",
+    role: user.role,
+  };
+
+  const newAccessToken = generateAccessToken(claims);
+  const newRefreshToken = generateRefeshToken({ id: user.id, role: user.role });
+  const hashedNewRefreshToken = hashToken(newRefreshToken);
+
+  await updateUserWithRefreshToken(hashedNewRefreshToken, user.email);
+
+  return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+};
+
 export {
   register,
   verifyEmail,
@@ -274,4 +302,5 @@ export {
   resetUserPassword,
   uploadAvatar,
   verifyUserEmailRequest,
+  refreshUserToken,
 };

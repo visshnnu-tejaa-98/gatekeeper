@@ -27,9 +27,13 @@ const authorize = (req: Request, res: Response) => {
 
 const registerClient = async (req: Request, res: Response) => {
   const { applicationDisplayName, applicationUrl, redirectUri } = req.body;
-  const { sub } = req.user;
+  const { sub, email_verified } = req.user;
 
   if (!sub) throw new NotFoundError("User Not found");
+  if (!email_verified)
+    throw new BadRequestError(
+      "Please verify your email to register a new client",
+    );
 
   const application = await registerNewClient({
     applicationDisplayName,
