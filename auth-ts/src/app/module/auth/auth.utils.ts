@@ -269,6 +269,15 @@ const getRedirectUriByClientId = async (clientId: string) => {
   return redirectUri;
 };
 
+const revokeRefreshTokenByHash = async (hashedToken: string): Promise<boolean> => {
+  const updated = await db
+    .update(usersTable)
+    .set({ refreshToken: null })
+    .where(eq(usersTable.refreshToken, hashedToken))
+    .returning({ id: usersTable.id });
+  return updated.length > 0;
+};
+
 const getUserByRefreshToken = async (hashedToken: string) => {
   const users = await db
     .select({
@@ -304,4 +313,5 @@ export {
   addNewShortCode,
   getRedirectUriByClientId,
   getUserByRefreshToken,
+  revokeRefreshTokenByHash,
 };

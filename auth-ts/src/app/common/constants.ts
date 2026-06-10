@@ -12,3 +12,8 @@ export const envs = [DEVELOPMENT, PRODUCTION, TEST];
 
 export const MAX_AVATAR_FILE_SIZE = 5000000;
 export const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/pdf"];
+
+export const ACCESS_TOKEN = "access_token";
+export const REFRESH_TOKEN = "refresh_token";
+
+export const TOKEN_TYPES = [ACCESS_TOKEN, REFRESH_TOKEN];

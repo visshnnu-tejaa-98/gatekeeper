@@ -3,9 +3,9 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { NotFoundError } from "./api-error";
 import { env } from "../zod/env";
 import { StringValue } from "ms";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
-type AccessTokenPayload = {
+type AccessTokenClaims = {
   iss: string;
   sub: string;
   email: string;
@@ -13,6 +13,12 @@ type AccessTokenPayload = {
   name: string;
   picture: string;
   role: string;
+};
+
+type AccessTokenPayload = AccessTokenClaims & {
+  jti: string;
+  exp: number;
+  iat: number;
 };
 
 const generateSalt = async (rounds: number) => {
@@ -60,7 +66,7 @@ const verifyEmailToken = (token: string) => {
   return jwt.verify(token, secret);
 };
 
-const generateAccessToken = (payload: AccessTokenPayload) => {
+const generateAccessToken = (payload: AccessTokenClaims) => {
   const secret = env.JWT_ACCESS_TOKEN_SECRET;
   const expiresIn = env.JWT_ACCESS_TOKEN_EXPIRES || "15m";
   if (!secret)
@@ -74,6 +80,7 @@ const generateAccessToken = (payload: AccessTokenPayload) => {
     );
   const options: SignOptions = {
     expiresIn: expiresIn as StringValue,
+    jwtid: randomUUID(),
   };
   return jwt.sign(payload, secret, options);
 };
@@ -146,4 +153,4 @@ export {
   verifyResetToken,
 };
 
-export type { AccessTokenPayload };
+export type { AccessTokenClaims, AccessTokenPayload };

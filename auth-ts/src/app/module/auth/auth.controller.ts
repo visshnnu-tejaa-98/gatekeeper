@@ -58,8 +58,10 @@ const getUserProfile = async (req: Request, res: Response) => {
 };
 
 const logoutUser = async (req: Request, res: Response) => {
-  const { sub: userId } = req.user;
-  await logout(userId!);
+  const { sub: userId, jti, exp } = req.user;
+  if (!userId || !jti || exp === undefined)
+    throw new UnauthorizedError("Invalid session");
+  await logout({ userId, jti, exp });
   ApiResponse.success(res, "User logout successfully");
 };
 

@@ -5,7 +5,9 @@ import {
   getAccessToken,
   getKeys,
   getTokenInfo,
+  introspectToken,
   registerClient,
+  revokeToken,
 } from "./oidc.controller";
 import { getUserProfile } from "../auth/auth.controller";
 import {
@@ -16,7 +18,9 @@ import { validate } from "../../common/zod/zod.midleware";
 import {
   deleteClientApplicationByClientIdSchema,
   getAccessTokenSchema,
+  introspectTokenSchema,
   registerNewClientDataSchema,
+  revokeTokenSchema,
 } from "./oidc.schema";
 
 const router = express.Router();
@@ -46,5 +50,8 @@ router.delete(
   deleteClient,
 );
 router.get("/token-info", restrictToAuthenticatedUser(), getTokenInfo);
+
+router.post("/revoke", validate(revokeTokenSchema), revokeToken);
+router.post("/introspect", validate(introspectTokenSchema), introspectToken);
 
 export default router;

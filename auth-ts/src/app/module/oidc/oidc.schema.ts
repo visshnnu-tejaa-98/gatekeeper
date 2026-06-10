@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TOKEN_TYPES } from "../../common/constants";
 
 const registerNewClientDataSchema = z.object({
   applicationDisplayName: z
@@ -31,13 +32,30 @@ const getAccessTokenSchema = z.object({
 
 type GetAccessTokenSchemaType = z.infer<typeof getAccessTokenSchema>;
 
+const clientCredentialsBaseSchema = z.object({
+  token: z.string().trim().nonempty(),
+  token_type_hint: z.enum(TOKEN_TYPES).optional(),
+  client_id: z.string().nonempty(),
+  client_secret: z.string().nonempty(),
+});
+
+const revokeTokenSchema = clientCredentialsBaseSchema;
+type RevokeTokenSchemaType = z.infer<typeof revokeTokenSchema>;
+
+const introspectTokenSchema = clientCredentialsBaseSchema;
+type IntrospectTokenSchemaType = z.infer<typeof introspectTokenSchema>;
+
 export {
   registerNewClientDataSchema,
   deleteClientApplicationByClientIdSchema,
   getAccessTokenSchema,
+  revokeTokenSchema,
+  introspectTokenSchema,
 };
 export type {
   RegisterNewClientDataSchemaType,
   DeleteClientApplicationByClientIdSchemaType,
   GetAccessTokenSchemaType,
+  RevokeTokenSchemaType,
+  IntrospectTokenSchemaType,
 };

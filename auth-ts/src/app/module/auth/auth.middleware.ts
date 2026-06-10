@@ -3,6 +3,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { UnauthorizedError } from "../../common/utils/api-error";
 import { verifyAccessToken } from "../../common/utils/jwt";
 import { ADMIN, SUPER_ADMIN } from "../../common/constants";
+import { isTokenRevoked } from "../oidc/oidc.utils";
 
 interface AuthUser {
   iss: string;
@@ -12,6 +13,8 @@ interface AuthUser {
   name: string;
   picture: string;
   role: string;
+  jti: string;
+  exp: number;
 }
 declare global {
   namespace Express {
@@ -22,25 +25,45 @@ declare global {
 }
 
 const authenticate = () => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers["authorization"];
-    if (!authHeader) return next();
-    if (!authHeader?.startsWith("Bearer")) {
-      throw new UnauthorizedError("Invalid Authorization header format");
-    }
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      throw new UnauthorizedError("Token not provided");
-    }
-    const user = verifyAccessToken(token);
-    if (!user) {
-      throw new UnauthorizedError("Invalid or expired token");
-    }
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers["authorization"];
+      if (!authHeader) return next();
+      if (!authHeader?.startsWith("Bearer")) {
+        throw new UnauthorizedError("Invalid Authorization header format");
+      }
+      const token = authHeader.split(" ")[1];
+      if (!token) {
+        throw new UnauthorizedError("Token not provided");
+      }
+      const user = verifyAccessToken(token);
+      if (!user) {
+        throw new UnauthorizedError("Invalid or expired token");
+      }
 
-    const { iss, sub, email, email_verified, name, picture, role } = user;
-    req.user = { iss, sub, email, email_verified, name, picture, role };
+      if (user.jti && (await isTokenRevoked(user.jti))) {
+        throw new UnauthorizedError("Token has been revoked");
+      }
 
-    next();
+      const { iss, sub, email, email_verified, name, picture, role, jti, exp } =
+        user;
+
+      req.user = {
+        iss,
+        sub,
+        email,
+        email_verified,
+        name,
+        picture,
+        role,
+        jti,
+        exp,
+      };
+
+      next();
+    } catch (err) {
+      next(err);
+    }
   };
 };
 

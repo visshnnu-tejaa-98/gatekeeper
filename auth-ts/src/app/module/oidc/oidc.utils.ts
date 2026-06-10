@@ -1,8 +1,17 @@
 import { and, eq } from "drizzle-orm";
 import db from "../../../db";
-import { applicationsTable, shortCodesTable } from "../../../db/schema";
-import { createNewApplicationPropsType } from "./oidc.types";
-import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
+import {
+  applicationsTable,
+  revokedTokensTable,
+  shortCodesTable,
+} from "../../../db/schema";
+import { CreateNewApplicationPropsType } from "./oidc.types";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../../common/utils/api-error";
+import { hashToken } from "../../common/utils/jwt";
 
 const getApplicationDetailsByUserIdAndApplicationUrl = async (
   userId: string,
@@ -28,7 +37,7 @@ const getApplicationDetailsByUserIdAndApplicationUrl = async (
   return application;
 };
 
-const createNewApplication = async (props: createNewApplicationPropsType) => {
+const createNewApplication = async (props: CreateNewApplicationPropsType) => {
   const {
     userId,
     applicationDisplayName,
@@ -111,9 +120,44 @@ const verifyClientSecretAndShortCode = async (
   return matchedRow;
 };
 
+const verifyClientCredentials = async (
+  clientId: string,
+  rawClientSecret: string,
+) => {
+  const hashedSecret = hashToken(rawClientSecret);
+  const apps = await db
+    .select({ id: applicationsTable.id })
+    .from(applicationsTable)
+    .where(
+      and(
+        eq(applicationsTable.clientId, clientId),
+        eq(applicationsTable.clientSecret, hashedSecret),
+      ),
+    );
+  console.log(apps);
+  if (apps.length === 0)
+    throw new UnauthorizedError("Invalid client credentials");
+  return apps[0];
+};
+
+const insertRevokedToken = async (jti: string, exp: Date) => {
+  await db.insert(revokedTokensTable).values({ jti, exp });
+};
+
+const isTokenRevoked = async (jti: string): Promise<boolean> => {
+  const rows = await db
+    .select({ jti: revokedTokensTable.jti })
+    .from(revokedTokensTable)
+    .where(eq(revokedTokensTable.jti, jti));
+  return rows.length > 0;
+};
+
 export {
   getApplicationDetailsByUserIdAndApplicationUrl,
   createNewApplication,
   deleteClientById,
   verifyClientSecretAndShortCode,
+  verifyClientCredentials,
+  insertRevokedToken,
+  isTokenRevoked,
 };

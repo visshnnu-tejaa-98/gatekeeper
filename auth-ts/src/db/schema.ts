@@ -58,3 +58,8 @@ export const shortCodesTable = pgTable("shortcodes", {
   shortcode: varchar("short_code", { length: 6 }).notNull(),
   clientId: text("client_id").notNull(),
 });
+
+export const revokedTokensTable = pgTable("revoked_tokens", {
+  jti: text("jti").primaryKey(),
+  exp: timestamp("exp").notNull(),
+});

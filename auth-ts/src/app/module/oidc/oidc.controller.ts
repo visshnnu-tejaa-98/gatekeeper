@@ -6,7 +6,9 @@ import { PUBLIC_KEY } from "../../common/utils/certs";
 import {
   deleteClientApplicationById,
   gestUserAccessToken,
+  introspectClientToken,
   registerNewClient,
+  revokeClientToken,
 } from "./oidc.service";
 import ApiResponse from "../../common/utils/api-response";
 import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
@@ -71,6 +73,22 @@ const getTokenInfo = async (req: Request, res: Response) => {
   ApiResponse.success(res, "User details fetched Successfully", req.user);
 };
 
+const revokeToken = async (req: Request, res: Response) => {
+  const { token, token_type_hint, client_id, client_secret } = req.body;
+  await revokeClientToken({ token, client_id, client_secret, token_type_hint });
+  ApiResponse.success(res, "Token revoked successfully");
+};
+
+const introspectToken = async (req: Request, res: Response) => {
+  const { token, client_id, client_secret } = req.body;
+  const result = await introspectClientToken({
+    token,
+    client_id,
+    client_secret,
+  });
+  ApiResponse.success(res, "Token introspected successfully", result);
+};
+
 export {
   getServiceDiscoveryEndpoints,
   getKeys,
@@ -79,4 +97,6 @@ export {
   deleteClient,
   getAccessToken,
   getTokenInfo,
+  revokeToken,
+  introspectToken,
 };

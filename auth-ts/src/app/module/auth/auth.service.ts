@@ -7,7 +7,7 @@ import {
   UnauthorizedError,
 } from "../../common/utils/api-error";
 import {
-  AccessTokenPayload,
+  AccessTokenClaims,
   generateAccessToken,
   generateRandomString,
   generateRefeshToken,
@@ -40,7 +40,14 @@ import {
 import { USER } from "../../common/constants";
 import { env } from "../../common/zod/env";
 import { fileUpload } from "../../common/utils/imagekit";
+import { insertRevokedToken } from "../oidc/oidc.utils";
 import { sendVerificationEmail } from "../../common/config/nodemailer";
+
+type LogoutProps = {
+  userId: string;
+  jti: string;
+  exp: number;
+};
 
 const register = async ({
   name,
@@ -73,7 +80,7 @@ const register = async ({
     throw new BadRequestError("User creation failed");
   }
 
-  const claims: AccessTokenPayload = {
+  const claims: AccessTokenClaims = {
     iss: env.ISSUER_URL || "http://localhost:9000",
     sub: user.id.toString(),
     email: user.email,
@@ -155,7 +162,7 @@ const login = async ({
 
   if (!result) throw new UnauthorizedError("Invalid email or password");
 
-  const claims: AccessTokenPayload = {
+  const claims: AccessTokenClaims = {
     iss: env.ISSUER_URL || "http://localhost:9000",
     sub: user.id.toString(),
     email: user.email,
@@ -196,7 +203,8 @@ const login = async ({
   };
 };
 
-const logout = async (userId: string) => {
+const logout = async ({ userId, jti, exp }: LogoutProps) => {
+  await insertRevokedToken(jti, new Date(exp * 1000));
   const status = await logoutUser(userId);
   return status;
 };
@@ -273,7 +281,7 @@ const refreshUserToken = async (incomingRefreshToken: string) => {
   // Verify JWT validity (throws if expired or tampered)
   verifyRefreshToken(incomingRefreshToken);
 
-  const claims: AccessTokenPayload = {
+  const claims: AccessTokenClaims = {
     iss: env.ISSUER_URL || "http://localhost:9000",
     sub: user.id.toString(),
     email: user.email,

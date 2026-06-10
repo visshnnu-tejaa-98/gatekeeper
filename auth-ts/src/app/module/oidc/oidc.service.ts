@@ -3,24 +3,34 @@ import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
 import {
   hashToken,
   generateRandomString,
-  AccessTokenPayload,
+  AccessTokenClaims,
   generateAccessToken,
   generateRefeshToken,
+  verifyAccessToken,
 } from "../../common/utils/jwt";
 import { env } from "../../common/zod/env";
 import {
   getUserDetailsByUserId,
+  revokeRefreshTokenByHash,
   updateUserWithRefreshToken,
 } from "../auth/auth.utils";
-import { registerClientProps } from "./oidc.types";
+import {
+  IntrospectTokenProps,
+  RegisterClientProps,
+  RevokeTokenProps,
+  TokenTypeHint,
+} from "./oidc.types";
 import {
   createNewApplication,
   deleteClientById,
   getApplicationDetailsByUserIdAndApplicationUrl,
+  insertRevokedToken,
+  isTokenRevoked,
+  verifyClientCredentials,
   verifyClientSecretAndShortCode,
 } from "./oidc.utils";
 
-const registerNewClient = async (props: registerClientProps) => {
+const registerNewClient = async (props: RegisterClientProps) => {
   const { applicationDisplayName, applicationUrl, redirectUri, userId } = props;
 
   const application = await getApplicationDetailsByUserIdAndApplicationUrl(
@@ -64,7 +74,7 @@ const gestUserAccessToken = async (clientSecret: string, shortCode: string) => {
 
   const userDetails = await getUserDetailsByUserId(userId);
 
-  const claims: AccessTokenPayload = {
+  const claims: AccessTokenClaims = {
     iss: env.ISSUER_URL || "http://localhost:9000",
     sub: userDetails.id.toString(),
     email: userDetails.email,
@@ -92,4 +102,65 @@ const gestUserAccessToken = async (clientSecret: string, shortCode: string) => {
   };
 };
 
-export { registerNewClient, deleteClientApplicationById, gestUserAccessToken };
+const revokeClientToken = async (props: RevokeTokenProps) => {
+  const {
+    token,
+    token_type_hint: tokenTypeHint,
+    client_id: clientId,
+    client_secret: rawClientSecret,
+  } = props;
+  await verifyClientCredentials(clientId, rawClientSecret);
+  console.log(111);
+  if (tokenTypeHint === TokenTypeHint.ACCESS_TOKEN) {
+    const decoded = verifyAccessToken(token);
+    if (decoded.jti && decoded.exp !== undefined) {
+      await insertRevokedToken(decoded.jti, new Date(decoded.exp * 1000));
+    }
+  } else {
+    // default: treat as refresh token, fall back to access token
+    const revoked = await revokeRefreshTokenByHash(hashToken(token));
+    if (!revoked) {
+      const decoded = verifyAccessToken(token);
+      if (decoded.jti && decoded.exp !== undefined) {
+        await insertRevokedToken(decoded.jti, new Date(decoded.exp * 1000));
+      }
+    }
+  }
+};
+
+const introspectClientToken = async (props: IntrospectTokenProps) => {
+  const { token, client_id: clientId, client_secret: rawClientSecret } = props;
+  await verifyClientCredentials(clientId, rawClientSecret);
+  try {
+    const decoded = verifyAccessToken(token);
+
+    if (decoded.jti && (await isTokenRevoked(decoded.jti))) {
+      return { active: false };
+    }
+
+    await getUserDetailsByUserId(decoded.sub);
+
+    return {
+      active: true,
+      sub: decoded.sub,
+      email: decoded.email,
+      name: decoded.name,
+      picture: decoded.picture,
+      role: decoded.role,
+      iss: decoded.iss,
+      exp: decoded.exp,
+      iat: decoded.iat,
+      ...(decoded.jti ? { jti: decoded.jti } : {}),
+    };
+  } catch {
+    return { active: false };
+  }
+};
+
+export {
+  registerNewClient,
+  deleteClientApplicationById,
+  gestUserAccessToken,
+  revokeClientToken,
+  introspectClientToken,
+};
