@@ -6,6 +6,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(envs).default(DEVELOPMENT),
   POSTGRES_URI: z.string(),
   BASE_URL: z.string().url(),
+  CLIENT_URL: z.string().url(),
   JWT_VERIFY_TOKEN_SECRET: z
     .string()
     .min(1, "JWT_VERIFY_TOKEN_SECRET is required"),

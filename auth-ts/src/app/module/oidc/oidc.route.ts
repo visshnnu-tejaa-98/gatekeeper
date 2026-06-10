@@ -49,7 +49,7 @@ router.delete(
   adminOnly(),
   deleteClient,
 );
-router.get("/token-info", restrictToAuthenticatedUser(), getTokenInfo);
+router.get("/token", restrictToAuthenticatedUser(), getTokenInfo);
 
 router.post("/revoke", validate(revokeTokenSchema), revokeToken);
 router.post("/introspect", validate(introspectTokenSchema), introspectToken);

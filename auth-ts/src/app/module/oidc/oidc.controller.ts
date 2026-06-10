@@ -13,6 +13,7 @@ import {
 import ApiResponse from "../../common/utils/api-response";
 import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
 import { DeleteClientApplicationByClientIdSchemaType } from "./oidc.schema";
+import { env } from "../../common/zod/env";
 
 const getServiceDiscoveryEndpoints = (req: Request, res: Response) => {
   res.json(SERVICE_DISCOVERY_ENDPOINTS);
@@ -24,7 +25,7 @@ const getKeys = async (req: Request, res: Response) => {
 };
 
 const authorize = (req: Request, res: Response) => {
-  res.redirect("http://localhost:3000/signup");
+  res.redirect(env.CLIENT_URL);
 };
 
 const registerClient = async (req: Request, res: Response) => {
