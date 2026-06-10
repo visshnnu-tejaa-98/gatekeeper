@@ -9,13 +9,22 @@ import {
   resetUserPassword,
   uploadAvatar,
   verifyEmail,
+  verifyUserEmailRequest,
 } from "./auth.service";
 import { UnauthorizedError } from "../../common/utils/api-error";
 
 const registerUser = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
-  const data = await register({ name, email, password });
+  const clientId = req.query.client_id as string;
+  const data = await register({ name, email, password, clientId });
   ApiResponse.created(res, "User created successfully", data);
+};
+
+const verifyEmailRequest = async (req: Request, res: Response) => {
+  const { email } = req.user;
+  const result = await verifyUserEmailRequest(email);
+  console.log({ result });
+  ApiResponse.success(res, `Email Sent to ${email} successfully`, result);
 };
 
 const verifyUserEmail = async (req: Request, res: Response) => {
@@ -83,4 +92,5 @@ export {
   resetPassword,
   getUserProfile,
   uploadUserAvatar,
+  verifyEmailRequest,
 };

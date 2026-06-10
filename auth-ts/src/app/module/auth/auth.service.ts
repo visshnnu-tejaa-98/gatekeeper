@@ -29,6 +29,7 @@ import {
   insertUser,
   logoutUser,
   updateUserAfterEmailVerification,
+  updateUserInfo,
   updateUserWithNewPassword,
   updateUserWithRefreshToken,
   updateUserWithResetToken,
@@ -37,15 +38,18 @@ import {
 import { USER } from "../../common/constants";
 import { env } from "../../common/zod/env";
 import { fileUpload } from "../../common/utils/imagekit";
+import { sendVerificationEmail } from "../../common/config/nodemailer";
 
 const register = async ({
   name,
   email,
   password,
+  clientId,
 }: {
   name: string;
   email: string;
   password: string;
+  clientId: string;
 }) => {
   const userExists = await checkUserWithEmailExists(email);
 
@@ -57,14 +61,10 @@ const register = async ({
   const salt = await generateSalt(10);
   const hashedPassword = await hash(password, salt);
 
-  const verificationToken = generateVerifyEmailToken({ email, role: USER });
-  const hashedVerificationToken = hashToken(verificationToken);
-
   const [user] = await insertUser({
     name,
     email,
     password: hashedPassword,
-    verificationToken: hashedVerificationToken,
   });
 
   if (!user) {
@@ -75,24 +75,53 @@ const register = async ({
     iss: env.ISSUER_URL || "http://localhost:9000",
     sub: user.id.toString(),
     email: user.email,
-    email_verified: user.isEmailVerified ?? false,
+    email_verified: false,
     name: user.name,
     picture: user.avatar ?? "",
     role: user.role,
   };
 
-  const accessToken = generateAccessToken(claims);
-  const refreshToken = generateRefeshToken({ id: user?.id!, role: USER });
-  const hashedRefreshToken = hashToken(refreshToken);
+  if (!clientId) {
+    const accessToken = generateAccessToken(claims);
+    const refreshToken = generateRefeshToken({ id: user?.id!, role: USER });
+    const hashedRefreshToken = hashToken(refreshToken);
 
-  const updatedUser = await updateUserWithRefreshToken(
-    hashedRefreshToken,
-    email,
+    const updatedUser = await updateUserWithRefreshToken(
+      hashedRefreshToken,
+      email,
+    );
+    return { id: user?.id, accessToken };
+  }
+  const shortCode = generateRandomString(3);
+  const createdShortCode = await addNewShortCode({
+    shortCode,
+    userId: user.id,
+    clientId,
+  });
+  const { redirectUri } = await getRedirectUriByClientId(clientId);
+  const redirectUriWithShortcode = `${redirectUri}?shortcode=${shortCode}`;
+
+  return {
+    shortCode,
+    redirectUriWithShortcode,
+  };
+};
+
+const verifyUserEmailRequest = async (email: string) => {
+  const verificationToken = generateVerifyEmailToken({ email, role: USER });
+  const hashedVerificationToken = hashToken(verificationToken);
+
+  const updatedUser = await updateUserInfo(
+    { email },
+    { verificationToken: hashedVerificationToken },
   );
 
-  // await sendVerificationEmail(email, verificationToken);
+  console.log("from verify route", { updatedUser });
+  await sendVerificationEmail(email, verificationToken);
 
-  return { id: user?.id, accessToken };
+  return {
+    emailVerificationToken: verificationToken,
+  };
 };
 
 const verifyEmail = async ({ token }: { token: string }) => {
@@ -246,4 +275,5 @@ export {
   forgot,
   resetUserPassword,
   uploadAvatar,
+  verifyUserEmailRequest,
 };

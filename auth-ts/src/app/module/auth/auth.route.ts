@@ -8,6 +8,7 @@ import {
   verifyUserEmail,
   resetPassword,
   uploadUserAvatar,
+  verifyEmailRequest,
 } from "./auth.controller";
 import { validate } from "../../common/zod/zod.midleware";
 import {
@@ -18,6 +19,7 @@ import {
   resetPasswordSchemaFromBody,
   resetPasswordSchemaFromParams,
   uploadAvatarSchema,
+  verifyEmailPayloadSchema,
   verifyEmailSchema,
 } from "./auth.schema";
 import { adminOnly, restrictToAuthenticatedUser } from "./auth.middleware";
@@ -25,7 +27,18 @@ import { upload } from "../../common/utils/multer";
 
 const router = express.Router();
 
-router.post("/register", validate(registerSchema), registerUser);
+router.post(
+  "/register",
+  validate(registerSchema),
+  validate(loginUserQuerySchema, "query"),
+  registerUser,
+);
+router.get(
+  "/verify-email-request",
+  validate(verifyEmailPayloadSchema),
+  restrictToAuthenticatedUser(),
+  verifyEmailRequest,
+);
 router.post("/verify", validate(verifyEmailSchema), verifyUserEmail);
 router.post(
   "/login",

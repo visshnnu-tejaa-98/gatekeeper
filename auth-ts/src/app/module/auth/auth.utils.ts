@@ -11,7 +11,6 @@ type InsertUserServicePayload = {
   name: string;
   email: string;
   password: string;
-  verificationToken: string;
 };
 
 type UserLookup =
@@ -45,7 +44,6 @@ const insertUser = async ({
   name,
   email,
   password,
-  verificationToken,
 }: InsertUserServicePayload) => {
   const userId = await db
     .insert(usersTable)
@@ -53,13 +51,11 @@ const insertUser = async ({
       name,
       email,
       password,
-      verificationToken,
       updatedAt: new Date(),
     })
     .returning({
       id: usersTable.id,
       email: usersTable.email,
-      isEmailVerified: usersTable.isVerified,
       name: usersTable.name,
       role: usersTable.role,
       avatar: usersTable.avatar,

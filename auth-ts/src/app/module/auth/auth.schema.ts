@@ -25,6 +25,12 @@ const registerSchema = z.object({
 
 type RegisterInputType = z.infer<typeof registerSchema>;
 
+const verifyEmailPayloadSchema = z.object({
+  email: z.email().nonempty().describe("email of the user who wants to verify"),
+});
+
+type VerifyEmailPayloadSchemaType = z.infer<typeof verifyEmailPayloadSchema>;
+
 const verifyEmailSchema = z.object({
   token: z
     .string()
@@ -102,6 +108,7 @@ export {
   resetPasswordSchemaFromParams,
   uploadAvatarSchema,
   loginUserQuerySchema,
+  verifyEmailPayloadSchema,
 };
 export type {
   RegisterInputType,
@@ -112,4 +119,5 @@ export type {
   ResetPasswordSchemaFromParamsType,
   UploadAvatarSchemaType,
   LoginUserQuerySchemaType,
+  VerifyEmailPayloadSchemaType,
 };
