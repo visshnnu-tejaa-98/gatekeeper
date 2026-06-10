@@ -116,7 +116,6 @@ const verifyUserEmailRequest = async (email: string) => {
     { verificationToken: hashedVerificationToken },
   );
 
-  console.log("from verify route", { updatedUser });
   await sendVerificationEmail(email, verificationToken);
 
   return {
@@ -247,7 +246,6 @@ const resetUserPassword = async ({
 
 const uploadAvatar = async (userId: string, file: Express.Multer.File) => {
   try {
-    // console.log()
     // const fileName = `${Date.now()}-${Math.random() * 1e9}${path.extname(file?.originalname!)}`;
     const fileName = Date.now().toString();
 

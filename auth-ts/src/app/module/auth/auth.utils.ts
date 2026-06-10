@@ -179,7 +179,6 @@ const uploadAvatarInDB = async (userId: string, avatarUrl: string) => {
     .where(eq(usersTable.id, userId))
     .returning({ id: usersTable.id, avatarUrl: usersTable.avatar });
 
-  console.log({ users });
   if (users.length === 0) throw new BadRequestError();
   const user = users[0];
   if (!user) throw new NotFoundError("User not found");

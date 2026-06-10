@@ -23,7 +23,6 @@ const registerUser = async (req: Request, res: Response) => {
 const verifyEmailRequest = async (req: Request, res: Response) => {
   const { email } = req.user;
   const result = await verifyUserEmailRequest(email);
-  console.log({ result });
   ApiResponse.success(res, `Email Sent to ${email} successfully`, result);
 };
 
