@@ -63,6 +63,10 @@ const getAccessToken = async (req: Request, res: Response) => {
   ApiResponse.success(res, "Access Token generated successfully", data);
 };
 
+const getTokenInfo = async (req: Request, res: Response) => {
+  ApiResponse.success(res, "User details fetched Successfully", req.user);
+};
+
 export {
   getServiceDiscoveryEndpoints,
   getKeys,
@@ -70,4 +74,5 @@ export {
   registerClient,
   deleteClient,
   getAccessToken,
+  getTokenInfo,
 };

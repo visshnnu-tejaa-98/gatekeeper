@@ -4,6 +4,7 @@ import {
   deleteClient,
   getAccessToken,
   getKeys,
+  getTokenInfo,
   registerClient,
 } from "./oidc.controller";
 import { getUserProfile } from "../auth/auth.controller";
@@ -44,5 +45,6 @@ router.delete(
   adminOnly(),
   deleteClient,
 );
+router.get("/token-info", restrictToAuthenticatedUser(), getTokenInfo);
 
 export default router;
