@@ -13,6 +13,8 @@ import {
   verifyUserEmailRequest,
 } from "./auth.service";
 import { UnauthorizedError } from "../../common/utils/api-error";
+import { DEVELOPMENT } from "../../common/constants";
+import { env } from "../../common/zod/env";
 
 const registerUser = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
@@ -24,7 +26,9 @@ const registerUser = async (req: Request, res: Response) => {
 const verifyEmailRequest = async (req: Request, res: Response) => {
   const { email } = req.user;
   const result = await verifyUserEmailRequest(email);
-  ApiResponse.success(res, `Email Sent to ${email} successfully`, result);
+
+  if (env.NODE_ENV === DEVELOPMENT)
+    ApiResponse.success(res, `Email Sent to ${email} successfully`, result);
 };
 
 const verifyUserEmail = async (req: Request, res: Response) => {

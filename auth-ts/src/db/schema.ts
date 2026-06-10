@@ -26,7 +26,6 @@ export const usersTable = pgTable("users", {
 
   refreshToken: text("refresh_token"),
   resetToken: text("reset_token"),
-  resetTokenExpires: date("reset_token_expires"),
 
   avatar: text("avatar"),
 

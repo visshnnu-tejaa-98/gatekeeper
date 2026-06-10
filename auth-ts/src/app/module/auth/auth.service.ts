@@ -37,7 +37,7 @@ import {
   updateUserWithResetToken,
   uploadAvatarInDB,
 } from "./auth.utils";
-import { USER } from "../../common/constants";
+import { DEVELOPMENT, USER } from "../../common/constants";
 import { env } from "../../common/zod/env";
 import { fileUpload } from "../../common/utils/imagekit";
 import { insertRevokedToken } from "../oidc/oidc.utils";
@@ -126,6 +126,8 @@ const verifyUserEmailRequest = async (email: string) => {
   );
 
   await sendVerificationEmail(email, verificationToken);
+
+  if (env.NODE_ENV === DEVELOPMENT) return {};
 
   return {
     emailVerificationToken: verificationToken,
