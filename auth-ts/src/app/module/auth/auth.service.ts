@@ -226,6 +226,8 @@ const forgot = async ({ email }: { email: string }) => {
   const hashedResetToken = hashToken(resetToken);
   await updateUserWithResetToken(hashedResetToken, user.email);
 
+  if (env.NODE_ENV === DEVELOPMENT) return {};
+
   return {
     resetToken,
   };
@@ -271,7 +273,7 @@ const uploadAvatar = async (userId: string, file: Express.Multer.File) => {
 
     return updatedUser;
   } catch (error) {
-    console.error(111, error);
+    console.error(error);
     throw new BadRequestError("Something went wrong in file upload 222");
   }
 };

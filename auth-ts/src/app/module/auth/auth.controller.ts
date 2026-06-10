@@ -27,8 +27,7 @@ const verifyEmailRequest = async (req: Request, res: Response) => {
   const { email } = req.user;
   const result = await verifyUserEmailRequest(email);
 
-  if (env.NODE_ENV === DEVELOPMENT)
-    ApiResponse.success(res, `Email Sent to ${email} successfully`, result);
+  ApiResponse.success(res, `Email Sent to ${email} successfully`, result);
 };
 
 const verifyUserEmail = async (req: Request, res: Response) => {

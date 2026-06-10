@@ -110,7 +110,6 @@ const revokeClientToken = async (props: RevokeTokenProps) => {
     client_secret: rawClientSecret,
   } = props;
   await verifyClientCredentials(clientId, rawClientSecret);
-  console.log(111);
   if (tokenTypeHint === TokenTypeHint.ACCESS_TOKEN) {
     const decoded = verifyAccessToken(token);
     if (decoded.jti && decoded.exp !== undefined) {
