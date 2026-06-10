@@ -161,6 +161,9 @@ const getUserDetailsByUserId = async (id: string) => {
       id: usersTable.id,
       name: usersTable.name,
       email: usersTable.email,
+      isEmailVerified: usersTable.isVerified,
+      avatar: usersTable.avatar,
+      role: usersTable.role,
     })
     .from(usersTable)
     .where(eq(usersTable.id, id));

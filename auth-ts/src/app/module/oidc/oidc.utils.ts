@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import db from "../../../db";
-import { applicationsTable } from "../../../db/schema";
+import { applicationsTable, shortCodesTable } from "../../../db/schema";
 import { createNewApplicationPropsType } from "./oidc.types";
-import { BadRequestError } from "../../common/utils/api-error";
+import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
 
 const getApplicationDetailsByUserIdAndApplicationUrl = async (
   userId: string,
@@ -77,8 +77,41 @@ const deleteClientById = async (applicationId: string) => {
   return deletedApplicationId;
 };
 
+const verifyClientSecretAndShortCode = async (
+  shortCode: string,
+  clientSecret: string,
+) => {
+  const matchedDataRows = await db
+    .select({
+      clientId: shortCodesTable.clientId,
+      clientSecret: applicationsTable.clientSecret,
+      shortCode: shortCodesTable.shortcode,
+      userId: shortCodesTable.userId,
+    })
+    .from(shortCodesTable)
+    .innerJoin(
+      applicationsTable,
+      eq(applicationsTable.clientId, shortCodesTable.clientId),
+    )
+    .where(
+      and(
+        eq(shortCodesTable.shortcode, shortCode),
+        eq(applicationsTable.clientSecret, clientSecret),
+      ),
+    );
+
+  if (matchedDataRows.length === 0) throw new BadRequestError();
+  let matchedRow = matchedDataRows[0];
+  if (!matchedRow)
+    throw new NotFoundError(
+      "No data found with matching client_secret, client_id and sort_code",
+    );
+  return matchedRow;
+};
+
 export {
   getApplicationDetailsByUserIdAndApplicationUrl,
   createNewApplication,
   deleteClientById,
+  verifyClientSecretAndShortCode,
 };

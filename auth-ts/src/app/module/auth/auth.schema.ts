@@ -47,7 +47,7 @@ const loginSchema = z.object({
 type LoginSchemaType = z.infer<typeof loginSchema>;
 
 const loginUserQuerySchema = z.object({
-  client_id: z.string(),
+  client_id: z.string().optional(),
 });
 
 type LoginUserQuerySchemaType = z.infer<typeof loginUserQuerySchema>;

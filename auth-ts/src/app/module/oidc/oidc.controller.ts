@@ -3,9 +3,13 @@ import jose from "node-jose";
 
 import { SERVICE_DISCOVERY_ENDPOINTS } from "./oidc.constants";
 import { PUBLIC_KEY } from "../../common/utils/certs";
-import { deleteClientApplicationById, registerNewClient } from "./oidc.service";
+import {
+  deleteClientApplicationById,
+  gestUserAccessToken,
+  registerNewClient,
+} from "./oidc.service";
 import ApiResponse from "../../common/utils/api-response";
-import { NotFoundError } from "../../common/utils/api-error";
+import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
 import { DeleteClientApplicationByClientIdSchemaType } from "./oidc.schema";
 
 const getServiceDiscoveryEndpoints = (req: Request, res: Response) => {
@@ -49,10 +53,21 @@ const deleteClient = async (
   );
 };
 
+const getAccessToken = async (req: Request, res: Response) => {
+  const { short_code: shortCode, client_secret: clientSecret } = req.query;
+  if (typeof shortCode !== "string" || typeof clientSecret !== "string") {
+    return new BadRequestError("Missing or invalid query parameters.");
+  }
+  const data = await gestUserAccessToken(clientSecret, shortCode);
+
+  ApiResponse.success(res, "Access Token generated successfully", data);
+};
+
 export {
   getServiceDiscoveryEndpoints,
   getKeys,
   authorize,
   registerClient,
   deleteClient,
+  getAccessToken,
 };

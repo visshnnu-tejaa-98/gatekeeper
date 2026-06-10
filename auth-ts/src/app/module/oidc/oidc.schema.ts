@@ -24,9 +24,20 @@ type DeleteClientApplicationByClientIdSchemaType = z.infer<
   typeof deleteClientApplicationByClientIdSchema
 >;
 
-export { registerNewClientDataSchema, deleteClientApplicationByClientIdSchema };
+const getAccessTokenSchema = z.object({
+  short_code: z.string().nonempty(),
+  client_secret: z.string().nonempty(),
+});
 
+type GetAccessTokenSchemaType = z.infer<typeof getAccessTokenSchema>;
+
+export {
+  registerNewClientDataSchema,
+  deleteClientApplicationByClientIdSchema,
+  getAccessTokenSchema,
+};
 export type {
   RegisterNewClientDataSchemaType,
   DeleteClientApplicationByClientIdSchemaType,
+  GetAccessTokenSchemaType,
 };

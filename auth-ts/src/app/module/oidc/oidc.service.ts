@@ -1,10 +1,23 @@
+import { USER } from "../../common/constants";
 import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
-import { hashToken, generateRandomString } from "../../common/utils/jwt";
+import {
+  hashToken,
+  generateRandomString,
+  AccessTokenPayload,
+  generateAccessToken,
+  generateRefeshToken,
+} from "../../common/utils/jwt";
+import { env } from "../../common/zod/env";
+import {
+  getUserDetailsByUserId,
+  updateUserWithRefreshToken,
+} from "../auth/auth.utils";
 import { registerClientProps } from "./oidc.types";
 import {
   createNewApplication,
   deleteClientById,
   getApplicationDetailsByUserIdAndApplicationUrl,
+  verifyClientSecretAndShortCode,
 } from "./oidc.utils";
 
 const registerNewClient = async (props: registerClientProps) => {
@@ -34,7 +47,7 @@ const registerNewClient = async (props: registerClientProps) => {
   };
 
   const createdApplication = await createNewApplication(applicationData);
-  return createdApplication;
+  return { ...createdApplication[0], clientSecret: clientSecret };
 };
 
 const deleteClientApplicationById = async (applicationId: string) => {
@@ -43,4 +56,41 @@ const deleteClientApplicationById = async (applicationId: string) => {
   return isDeleted;
 };
 
-export { registerNewClient, deleteClientApplicationById };
+const gestUserAccessToken = async (clientSecret: string, shortCode: string) => {
+  const hashedClientSecret = hashToken(clientSecret);
+  const { userId } = await verifyClientSecretAndShortCode(
+    shortCode,
+    hashedClientSecret,
+  );
+
+  const userDetails = await getUserDetailsByUserId(userId);
+
+  const claims: AccessTokenPayload = {
+    iss: env.ISSUER_URL || "http://localhost:9000",
+    sub: userDetails.id.toString(),
+    email: userDetails.email,
+    email_verified: userDetails.isEmailVerified ?? false,
+    name: userDetails.name,
+    picture: userDetails.avatar ?? "",
+    role: userDetails.role,
+  };
+
+  const accessToken = generateAccessToken(claims);
+  const refreshToken = generateRefeshToken({
+    id: userDetails?.id!,
+    role: USER,
+  });
+  const hashedRefreshToken = hashToken(refreshToken);
+
+  const updatedUser = await updateUserWithRefreshToken(
+    hashedRefreshToken,
+    userDetails.email,
+  );
+
+  return {
+    id: updatedUser.id,
+    accessToken,
+  };
+};
+
+export { registerNewClient, deleteClientApplicationById, gestUserAccessToken };

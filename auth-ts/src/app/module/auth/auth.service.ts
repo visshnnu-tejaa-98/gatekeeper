@@ -29,7 +29,6 @@ import {
   insertUser,
   logoutUser,
   updateUserAfterEmailVerification,
-  updateUserInfo,
   updateUserWithNewPassword,
   updateUserWithRefreshToken,
   updateUserWithResetToken,
@@ -37,7 +36,6 @@ import {
 } from "./auth.utils";
 import { USER } from "../../common/constants";
 import { env } from "../../common/zod/env";
-import path from "node:path";
 import { fileUpload } from "../../common/utils/imagekit";
 
 const register = async ({

@@ -2,6 +2,7 @@ import express from "express";
 import {
   authorize,
   deleteClient,
+  getAccessToken,
   getKeys,
   registerClient,
 } from "./oidc.controller";
@@ -13,6 +14,7 @@ import {
 import { validate } from "../../common/zod/zod.midleware";
 import {
   deleteClientApplicationByClientIdSchema,
+  getAccessTokenSchema,
   registerNewClientDataSchema,
 } from "./oidc.schema";
 
@@ -21,6 +23,11 @@ const router = express.Router();
 router.get("/jwks.json", getKeys);
 router.get("/authorize", authorize);
 router.get("/userInfo", getUserProfile);
+router.get(
+  "/access-token",
+  validate(getAccessTokenSchema, "query"),
+  getAccessToken,
+);
 router.post(
   "/register-client",
   restrictToAuthenticatedUser(),
