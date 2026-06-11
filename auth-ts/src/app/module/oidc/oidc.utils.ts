@@ -12,6 +12,7 @@ import {
   UnauthorizedError,
 } from "../../common/utils/api-error";
 import { hashToken } from "../../common/utils/jwt";
+import { ADMIN, SUPER_ADMIN } from "../../common/constants";
 
 const getApplicationDetailsByUserIdAndApplicationUrl = async (
   userId: string,
@@ -66,6 +67,24 @@ const createNewApplication = async (props: CreateNewApplicationPropsType) => {
     });
 
   return createdApplication;
+};
+
+const getApplicationDetails = async (userId: string, role: string) => {
+  console.log({ role });
+  const condition =
+    role === SUPER_ADMIN ? undefined : eq(applicationsTable.userId, userId);
+  const applications = await db
+    .select({
+      id: applicationsTable.id,
+      name: applicationsTable.name,
+      url: applicationsTable.url,
+      redirectUri: applicationsTable.redirectUri,
+      clientId: applicationsTable.clientId,
+    })
+    .from(applicationsTable)
+    .where(condition);
+
+  return applications;
 };
 
 const deleteClientById = async (applicationId: string) => {
@@ -165,6 +184,7 @@ const isTokenRevoked = async (jti: string): Promise<boolean> => {
 export {
   getApplicationDetailsByUserIdAndApplicationUrl,
   createNewApplication,
+  getApplicationDetails,
   deleteClientById,
   verifyClientSecretAndShortCode,
   verifyClientCredentials,

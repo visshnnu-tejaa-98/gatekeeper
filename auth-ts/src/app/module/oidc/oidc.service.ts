@@ -26,6 +26,7 @@ import {
   createNewApplication,
   deleteClientById,
   getApplicationByClientId,
+  getApplicationDetails,
   getApplicationDetailsByUserIdAndApplicationUrl,
   insertRevokedToken,
   isTokenRevoked,
@@ -61,6 +62,11 @@ const registerNewClient = async (props: RegisterClientProps) => {
 
   const createdApplication = await createNewApplication(applicationData);
   return { ...createdApplication[0], clientSecret: clientSecret };
+};
+
+const getAllClientApplications = async (userId: string, role: string) => {
+  const applications = await getApplicationDetails(userId, role);
+  return applications;
 };
 
 const deleteClientApplicationById = async (applicationId: string) => {
@@ -178,6 +184,7 @@ const processConsent = async (consentToken: string, clientId: string) => {
 
 export {
   registerNewClient,
+  getAllClientApplications,
   deleteClientApplicationById,
   gestUserAccessToken,
   revokeClientToken,

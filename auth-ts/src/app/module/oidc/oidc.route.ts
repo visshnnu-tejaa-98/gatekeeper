@@ -4,6 +4,7 @@ import {
   consent,
   deleteClient,
   getAccessToken,
+  getAllApplications,
   getKeys,
   getTokenInfo,
   introspectToken,
@@ -43,6 +44,8 @@ router.post(
   registerClient,
 );
 
+router.get("/applications", restrictToAuthenticatedUser(), getAllApplications);
+
 router.delete(
   "/delete-client/:id",
   restrictToAuthenticatedUser(),
@@ -51,8 +54,9 @@ router.delete(
   adminOnly(),
   deleteClient,
 );
-router.get("/token", restrictToAuthenticatedUser(), getTokenInfo);
 
+router.get("/token", restrictToAuthenticatedUser(), getTokenInfo);
+// router.post("/rotate-secret");
 router.post("/consent", validate(consentSchema), consent);
 router.post("/revoke", validate(revokeTokenSchema), revokeToken);
 router.post("/introspect", validate(introspectTokenSchema), introspectToken);

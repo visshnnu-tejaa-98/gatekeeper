@@ -6,15 +6,21 @@ import { PUBLIC_KEY } from "../../common/utils/certs";
 import {
   deleteClientApplicationById,
   gestUserAccessToken,
+  getAllClientApplications,
   introspectClientToken,
   processConsent,
   registerNewClient,
   revokeClientToken,
 } from "./oidc.service";
 import ApiResponse from "../../common/utils/api-response";
-import { BadRequestError, NotFoundError } from "../../common/utils/api-error";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../../common/utils/api-error";
 import { DeleteClientApplicationByClientIdSchemaType } from "./oidc.schema";
 import { env } from "../../common/zod/env";
+import { ADMIN, USER } from "../../common/constants";
 
 const getServiceDiscoveryEndpoints = (req: Request, res: Response) => {
   res.json(SERVICE_DISCOVERY_ENDPOINTS);
@@ -47,6 +53,20 @@ const registerClient = async (req: Request, res: Response) => {
   });
 
   ApiResponse.created(res, "New Application got created", application);
+};
+
+const getAllApplications = async (req: Request, res: Response) => {
+  const { sub, role } = req.user;
+  if (!sub) throw new NotFoundError("User Not found");
+  if (role === USER || role === undefined)
+    throw new UnauthorizedError("Unauthorised to access the applications");
+
+  const applications = await getAllClientApplications(sub, role);
+  ApiResponse.success(
+    res,
+    "User applications fetched successfully",
+    applications,
+  );
 };
 
 const deleteClient = async (
@@ -102,6 +122,7 @@ export {
   getKeys,
   authorize,
   registerClient,
+  getAllApplications,
   deleteClient,
   getAccessToken,
   getTokenInfo,
