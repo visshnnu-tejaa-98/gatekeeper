@@ -39,6 +39,13 @@ const clientCredentialsBaseSchema = z.object({
   client_secret: z.string().nonempty(),
 });
 
+const consentSchema = z.object({
+  consent_token: z.string().trim().nonempty(),
+  client_id: z.string().nonempty(),
+});
+
+type ConsentSchemaType = z.infer<typeof consentSchema>;
+
 const revokeTokenSchema = clientCredentialsBaseSchema;
 type RevokeTokenSchemaType = z.infer<typeof revokeTokenSchema>;
 
@@ -51,6 +58,7 @@ export {
   getAccessTokenSchema,
   revokeTokenSchema,
   introspectTokenSchema,
+  consentSchema,
 };
 export type {
   RegisterNewClientDataSchemaType,
@@ -58,4 +66,5 @@ export type {
   GetAccessTokenSchemaType,
   RevokeTokenSchemaType,
   IntrospectTokenSchemaType,
+  ConsentSchemaType,
 };

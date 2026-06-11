@@ -17,3 +17,4 @@ export const ACCESS_TOKEN = "access_token";
 export const REFRESH_TOKEN = "refresh_token";
 
 export const TOKEN_TYPES = [ACCESS_TOKEN, REFRESH_TOKEN];
+export const FIXED_SCOPES = ["openid", "email", "profile"];

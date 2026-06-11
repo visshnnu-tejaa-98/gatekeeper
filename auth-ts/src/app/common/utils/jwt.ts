@@ -5,6 +5,14 @@ import { env } from "../zod/env";
 import { StringValue } from "ms";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 
+type ConsentTokenPayload = {
+  sub: string;
+  clientId: string;
+  type: string;
+  iat: number;
+  exp: number;
+};
+
 type AccessTokenClaims = {
   iss: string;
   sub: string;
@@ -138,6 +146,26 @@ const verifyResetToken = (token: string) => {
   return jwt.verify(token, secret);
 };
 
+const generateConsentToken = ({
+  userId,
+  clientId,
+}: {
+  userId: string;
+  clientId: string;
+}) => {
+  const payload = { sub: userId, clientId, type: "consent" };
+  const secret = env.JWT_CONSENT_TOKEN_SECRET;
+  const expiresIn = env.JWT_CONSENT_TOKEN_EXPIRES || "5m";
+  const options: SignOptions = { expiresIn: expiresIn as StringValue };
+
+  return jwt.sign(payload, secret, options);
+};
+
+const verifyConsentToken = (token: string): ConsentTokenPayload => {
+  const secret = env.JWT_CONSENT_TOKEN_SECRET;
+  return jwt.verify(token, secret) as ConsentTokenPayload;
+};
+
 export {
   generateSalt,
   generateRandomString,
@@ -151,6 +179,8 @@ export {
   verifyRefreshToken,
   generateResetToken,
   verifyResetToken,
+  generateConsentToken,
+  verifyConsentToken,
 };
 
-export type { AccessTokenClaims, AccessTokenPayload };
+export type { AccessTokenClaims, AccessTokenPayload, ConsentTokenPayload };

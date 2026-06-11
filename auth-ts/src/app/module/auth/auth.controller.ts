@@ -13,8 +13,6 @@ import {
   verifyUserEmailRequest,
 } from "./auth.service";
 import { UnauthorizedError } from "../../common/utils/api-error";
-import { DEVELOPMENT } from "../../common/constants";
-import { env } from "../../common/zod/env";
 
 const registerUser = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;

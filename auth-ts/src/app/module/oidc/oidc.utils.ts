@@ -74,8 +74,6 @@ const deleteClientById = async (applicationId: string) => {
     .where(eq(applicationsTable.id, applicationId))
     .returning({ id: applicationsTable.id });
 
-  console.log({ deletedItems });
-
   if (deletedItems.length === 0)
     throw new BadRequestError(
       `Client Application not found with ${applicationId}`,
@@ -120,6 +118,19 @@ const verifyClientSecretAndShortCode = async (
   return matchedRow;
 };
 
+const getApplicationByClientId = async (clientId: string) => {
+  const apps = await db
+    .select({
+      name: applicationsTable.name,
+      redirectUri: applicationsTable.redirectUri,
+    })
+    .from(applicationsTable)
+    .where(eq(applicationsTable.clientId, clientId));
+
+  if (apps.length === 0) throw new NotFoundError("Application not found");
+  return apps[0]!;
+};
+
 const verifyClientCredentials = async (
   clientId: string,
   rawClientSecret: string,
@@ -134,7 +145,6 @@ const verifyClientCredentials = async (
         eq(applicationsTable.clientSecret, hashedSecret),
       ),
     );
-  console.log(apps);
   if (apps.length === 0)
     throw new UnauthorizedError("Invalid client credentials");
   return apps[0];
@@ -160,4 +170,5 @@ export {
   verifyClientCredentials,
   insertRevokedToken,
   isTokenRevoked,
+  getApplicationByClientId,
 };

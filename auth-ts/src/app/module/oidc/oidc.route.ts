@@ -1,6 +1,7 @@
 import express from "express";
 import {
   authorize,
+  consent,
   deleteClient,
   getAccessToken,
   getKeys,
@@ -16,6 +17,7 @@ import {
 } from "../auth/auth.middleware";
 import { validate } from "../../common/zod/zod.midleware";
 import {
+  consentSchema,
   deleteClientApplicationByClientIdSchema,
   getAccessTokenSchema,
   introspectTokenSchema,
@@ -51,6 +53,7 @@ router.delete(
 );
 router.get("/token", restrictToAuthenticatedUser(), getTokenInfo);
 
+router.post("/consent", validate(consentSchema), consent);
 router.post("/revoke", validate(revokeTokenSchema), revokeToken);
 router.post("/introspect", validate(introspectTokenSchema), introspectToken);
 

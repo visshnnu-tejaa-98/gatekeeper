@@ -9,7 +9,7 @@ import {
 import {
   AccessTokenClaims,
   generateAccessToken,
-  generateRandomString,
+  generateConsentToken,
   generateRefeshToken,
   generateResetToken,
   generateSalt,
@@ -21,9 +21,7 @@ import {
   verifyResetToken,
 } from "../../common/utils/jwt";
 import {
-  addNewShortCode,
   checkUserWithEmailExists,
-  getRedirectUriByClientId,
   getUserByEmailVerifyToken,
   getUserByRefreshToken,
   getUserByResetToken,
@@ -37,10 +35,13 @@ import {
   updateUserWithResetToken,
   uploadAvatarInDB,
 } from "./auth.utils";
-import { DEVELOPMENT, USER } from "../../common/constants";
+import { DEVELOPMENT, FIXED_SCOPES, USER } from "../../common/constants";
 import { env } from "../../common/zod/env";
 import { fileUpload } from "../../common/utils/imagekit";
-import { insertRevokedToken } from "../oidc/oidc.utils";
+import {
+  getApplicationByClientId,
+  insertRevokedToken,
+} from "../oidc/oidc.utils";
 import { sendVerificationEmail } from "../../common/config/nodemailer";
 
 type LogoutProps = {
@@ -101,18 +102,13 @@ const register = async ({
     );
     return { id: user?.id, accessToken };
   }
-  const shortCode = generateRandomString(3);
-  const createdShortCode = await addNewShortCode({
-    shortCode,
-    userId: user.id,
-    clientId,
-  });
-  const { redirectUri } = await getRedirectUriByClientId(clientId);
-  const redirectUriWithShortcode = `${redirectUri}?shortcode=${shortCode}`;
+  const { name: applicationName } = await getApplicationByClientId(clientId);
+  const consentToken = generateConsentToken({ userId: user.id, clientId });
 
   return {
-    shortCode,
-    redirectUriWithShortcode,
+    consentToken,
+    applicationName,
+    scopes: FIXED_SCOPES,
   };
 };
 
@@ -127,7 +123,7 @@ const verifyUserEmailRequest = async (email: string) => {
 
   await sendVerificationEmail(email, verificationToken);
 
-  if (env.NODE_ENV === DEVELOPMENT) return {};
+  if (env.NODE_ENV !== DEVELOPMENT) return {};
 
   return {
     emailVerificationToken: verificationToken,
@@ -189,19 +185,13 @@ const login = async ({
       accessToken,
     };
   }
-  const shortCode = generateRandomString(3);
-  const createdShortCode = await addNewShortCode({
-    shortCode,
-    userId: user.id,
-    clientId,
-  });
-
-  const { redirectUri } = await getRedirectUriByClientId(clientId);
-  const redirectUriWithShortcode = `${redirectUri}?shortcode=${shortCode}`;
+  const { name: applicationName } = await getApplicationByClientId(clientId);
+  const consentToken = generateConsentToken({ userId: user.id, clientId });
 
   return {
-    shortCode,
-    redirectUriWithShortcode,
+    consentToken,
+    applicationName,
+    scopes: FIXED_SCOPES,
   };
 };
 
@@ -226,7 +216,7 @@ const forgot = async ({ email }: { email: string }) => {
   const hashedResetToken = hashToken(resetToken);
   await updateUserWithResetToken(hashedResetToken, user.email);
 
-  if (env.NODE_ENV === DEVELOPMENT) return {};
+  if (env.NODE_ENV !== DEVELOPMENT) return {};
 
   return {
     resetToken,

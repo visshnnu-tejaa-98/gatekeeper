@@ -7,6 +7,7 @@ import {
   deleteClientApplicationById,
   gestUserAccessToken,
   introspectClientToken,
+  processConsent,
   registerNewClient,
   revokeClientToken,
 } from "./oidc.service";
@@ -74,6 +75,12 @@ const getTokenInfo = async (req: Request, res: Response) => {
   ApiResponse.success(res, "User details fetched Successfully", req.user);
 };
 
+const consent = async (req: Request, res: Response) => {
+  const { consent_token, client_id } = req.body;
+  const result = await processConsent(consent_token, client_id);
+  ApiResponse.success(res, "Consent granted", result);
+};
+
 const revokeToken = async (req: Request, res: Response) => {
   const { token, token_type_hint, client_id, client_secret } = req.body;
   await revokeClientToken({ token, client_id, client_secret, token_type_hint });
@@ -100,4 +107,5 @@ export {
   getTokenInfo,
   revokeToken,
   introspectToken,
+  consent,
 };

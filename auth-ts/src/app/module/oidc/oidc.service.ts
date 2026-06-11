@@ -7,9 +7,11 @@ import {
   generateAccessToken,
   generateRefeshToken,
   verifyAccessToken,
+  verifyConsentToken,
 } from "../../common/utils/jwt";
 import { env } from "../../common/zod/env";
 import {
+  addNewShortCode,
   getUserDetailsByUserId,
   revokeRefreshTokenByHash,
   updateUserWithRefreshToken,
@@ -23,6 +25,7 @@ import {
 import {
   createNewApplication,
   deleteClientById,
+  getApplicationByClientId,
   getApplicationDetailsByUserIdAndApplicationUrl,
   insertRevokedToken,
   isTokenRevoked,
@@ -156,10 +159,28 @@ const introspectClientToken = async (props: IntrospectTokenProps) => {
   }
 };
 
+const processConsent = async (consentToken: string, clientId: string) => {
+  const decoded = verifyConsentToken(consentToken);
+
+  if (decoded.type !== "consent")
+    throw new BadRequestError("Invalid token type");
+
+  if (decoded.clientId !== clientId)
+    throw new BadRequestError("Token does not match the provided client_id");
+
+  const { redirectUri } = await getApplicationByClientId(clientId);
+
+  const shortCode = generateRandomString(3);
+  await addNewShortCode({ shortCode, userId: decoded.sub, clientId });
+
+  return { redirectUriWithShortcode: `${redirectUri}?shortcode=${shortCode}` };
+};
+
 export {
   registerNewClient,
   deleteClientApplicationById,
   gestUserAccessToken,
   revokeClientToken,
   introspectClientToken,
+  processConsent,
 };
