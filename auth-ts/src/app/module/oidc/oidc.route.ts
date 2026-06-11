@@ -10,10 +10,11 @@ import {
   introspectToken,
   registerClient,
   revokeToken,
+  rotateSecret,
 } from "./oidc.controller";
 import { getUserProfile } from "../auth/auth.controller";
 import {
-  adminOnly,
+  restrictTo,
   restrictToAuthenticatedUser,
 } from "../auth/auth.middleware";
 import { validate } from "../../common/zod/zod.midleware";
@@ -23,8 +24,10 @@ import {
   getAccessTokenSchema,
   introspectTokenSchema,
   registerNewClientDataSchema,
+  rotateSecretParamsSchema,
   revokeTokenSchema,
 } from "./oidc.schema";
+import { ADMIN, SUPER_ADMIN } from "../../common/constants";
 
 const router = express.Router();
 
@@ -39,7 +42,7 @@ router.get(
 router.post(
   "/register-client",
   restrictToAuthenticatedUser(),
-  adminOnly(),
+  restrictTo(ADMIN),
   validate(registerNewClientDataSchema),
   registerClient,
 );
@@ -50,14 +53,21 @@ router.delete(
   "/delete-client/:id",
   restrictToAuthenticatedUser(),
   validate(deleteClientApplicationByClientIdSchema, "params"),
-  // TODO: Change this to superAdmin only
-  adminOnly(),
+  // TODO Check delete functionality with multipe user roles
+  restrictTo(SUPER_ADMIN),
   deleteClient,
 );
 
 router.get("/token", restrictToAuthenticatedUser(), getTokenInfo);
-// router.post("/rotate-secret");
 router.post("/consent", validate(consentSchema), consent);
+
+router.post(
+  "/rotate-secret/:id",
+  restrictToAuthenticatedUser(),
+  restrictTo(ADMIN, SUPER_ADMIN),
+  validate(rotateSecretParamsSchema, "params"),
+  rotateSecret,
+);
 router.post("/revoke", validate(revokeTokenSchema), revokeToken);
 router.post("/introspect", validate(introspectTokenSchema), introspectToken);
 

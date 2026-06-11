@@ -39,6 +39,12 @@ const clientCredentialsBaseSchema = z.object({
   client_secret: z.string().nonempty(),
 });
 
+const rotateSecretParamsSchema = z.object({
+  id: z.string().trim().nonempty(),
+});
+
+type RotateSecretParamsSchemaType = z.infer<typeof rotateSecretParamsSchema>;
+
 const consentSchema = z.object({
   consent_token: z.string().trim().nonempty(),
   client_id: z.string().nonempty(),
@@ -56,6 +62,7 @@ export {
   registerNewClientDataSchema,
   deleteClientApplicationByClientIdSchema,
   getAccessTokenSchema,
+  rotateSecretParamsSchema,
   revokeTokenSchema,
   introspectTokenSchema,
   consentSchema,
@@ -64,6 +71,7 @@ export type {
   RegisterNewClientDataSchemaType,
   DeleteClientApplicationByClientIdSchemaType,
   GetAccessTokenSchemaType,
+  RotateSecretParamsSchemaType,
   RevokeTokenSchemaType,
   IntrospectTokenSchemaType,
   ConsentSchemaType,

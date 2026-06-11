@@ -24,8 +24,9 @@ import {
   verifyEmailPayloadSchema,
   verifyEmailSchema,
 } from "./auth.schema";
-import { adminOnly, restrictToAuthenticatedUser } from "./auth.middleware";
+import { restrictTo, restrictToAuthenticatedUser } from "./auth.middleware";
 import { upload } from "../../common/utils/multer";
+import { ADMIN } from "../../common/constants";
 
 const router = express.Router();
 
@@ -66,8 +67,13 @@ router.post(
   uploadUserAvatar,
 );
 
-router.get("/admin", restrictToAuthenticatedUser(), adminOnly(), (req, res) => {
-  res.json({ message: "This is admin only route" });
-});
+router.get(
+  "/admin",
+  restrictToAuthenticatedUser(),
+  restrictTo(ADMIN),
+  (req, res) => {
+    res.json({ message: "This is admin only route" });
+  },
+);
 
 export default router;

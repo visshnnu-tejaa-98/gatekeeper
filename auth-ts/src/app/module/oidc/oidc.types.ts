@@ -31,3 +31,10 @@ export type IntrospectTokenProps = {
   client_id: string;
   client_secret: string;
 };
+
+export type RotateApplicationSecretByApplicationIdProps = {
+  applicationId: string;
+  userId: string;
+  role: string;
+  hashedClientSecret: string;
+};

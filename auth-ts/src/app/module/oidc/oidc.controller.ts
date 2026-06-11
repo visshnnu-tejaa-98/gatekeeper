@@ -11,6 +11,7 @@ import {
   processConsent,
   registerNewClient,
   revokeClientToken,
+  rotateApplicationSecret,
 } from "./oidc.service";
 import ApiResponse from "../../common/utils/api-response";
 import {
@@ -101,6 +102,14 @@ const consent = async (req: Request, res: Response) => {
   ApiResponse.success(res, "Consent granted", result);
 };
 
+const rotateSecret = async (req: Request, res: Response) => {
+  const { sub: userId, role } = req.user;
+  const applicationId = req.params.id as string;
+  if (!userId) throw new UnauthorizedError("Invalid session");
+  const result = await rotateApplicationSecret(applicationId, userId, role);
+  ApiResponse.success(res, "Secret rotated successfully", result);
+};
+
 const revokeToken = async (req: Request, res: Response) => {
   const { token, token_type_hint, client_id, client_secret } = req.body;
   await revokeClientToken({ token, client_id, client_secret, token_type_hint });
@@ -129,4 +138,5 @@ export {
   revokeToken,
   introspectToken,
   consent,
+  rotateSecret,
 };

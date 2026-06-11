@@ -5,14 +5,17 @@ import {
   revokedTokensTable,
   shortCodesTable,
 } from "../../../db/schema";
-import { CreateNewApplicationPropsType } from "./oidc.types";
+import {
+  CreateNewApplicationPropsType,
+  RotateApplicationSecretByApplicationIdProps,
+} from "./oidc.types";
 import {
   BadRequestError,
   NotFoundError,
   UnauthorizedError,
 } from "../../common/utils/api-error";
 import { hashToken } from "../../common/utils/jwt";
-import { ADMIN, SUPER_ADMIN } from "../../common/constants";
+import { SUPER_ADMIN } from "../../common/constants";
 
 const getApplicationDetailsByUserIdAndApplicationUrl = async (
   userId: string,
@@ -169,6 +172,36 @@ const verifyClientCredentials = async (
   return apps[0];
 };
 
+const rotateApplicationSecretByApplicationId = async (
+  props: RotateApplicationSecretByApplicationIdProps,
+) => {
+  const { role, applicationId, userId, hashedClientSecret } = props;
+
+  const condition =
+    role === SUPER_ADMIN ?
+      eq(applicationsTable.id, applicationId)
+    : and(
+        eq(applicationsTable.id, applicationId),
+        eq(applicationsTable.userId, userId),
+      );
+
+  const updated = await db
+    .update(applicationsTable)
+    .set({ clientSecret: hashedClientSecret, updatedAt: new Date() })
+    .where(condition)
+    .returning({
+      id: applicationsTable.id,
+      clientId: applicationsTable.clientId,
+    });
+
+  if (updated.length === 0)
+    throw new NotFoundError(
+      "Application not found or you do not have permission to rotate this secret",
+    );
+
+  return updated[0]!;
+};
+
 const insertRevokedToken = async (jti: string, exp: Date) => {
   await db.insert(revokedTokensTable).values({ jti, exp });
 };
@@ -191,4 +224,5 @@ export {
   insertRevokedToken,
   isTokenRevoked,
   getApplicationByClientId,
+  rotateApplicationSecretByApplicationId,
 };

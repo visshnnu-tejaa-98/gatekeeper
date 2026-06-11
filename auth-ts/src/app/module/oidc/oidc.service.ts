@@ -32,6 +32,7 @@ import {
   isTokenRevoked,
   verifyClientCredentials,
   verifyClientSecretAndShortCode,
+  rotateApplicationSecretByApplicationId,
 } from "./oidc.utils";
 
 const registerNewClient = async (props: RegisterClientProps) => {
@@ -109,6 +110,22 @@ const gestUserAccessToken = async (clientSecret: string, shortCode: string) => {
     id: updatedUser.id,
     accessToken,
   };
+};
+
+const rotateApplicationSecret = async (
+  applicationId: string,
+  userId: string,
+  role: string,
+) => {
+  const clientSecret = generateRandomString(32);
+  const hashedClientSecret = hashToken(clientSecret);
+  const result = await rotateApplicationSecretByApplicationId({
+    applicationId,
+    userId,
+    role,
+    hashedClientSecret,
+  });
+  return { ...result, clientSecret };
 };
 
 const revokeClientToken = async (props: RevokeTokenProps) => {
@@ -190,4 +207,5 @@ export {
   revokeClientToken,
   introspectClientToken,
   processConsent,
+  rotateApplicationSecret,
 };

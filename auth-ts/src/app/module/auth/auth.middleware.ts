@@ -74,30 +74,19 @@ const restrictToAuthenticatedUser = () => {
   };
 };
 
-const adminOnly = () => {
+const restrictTo = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError("Authentication Required");
     }
 
-    if (req.user.role !== ADMIN) {
-      throw new UnauthorizedError("Admin access required");
+    if (!allowedRoles.includes(req.user.role)) {
+      throw new UnauthorizedError(
+        "You do not have permission to perform this action",
+      );
     }
     next();
   };
 };
 
-const superAdminOnly = () => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new UnauthorizedError("Authentication Required");
-    }
-
-    if (req.user.role !== SUPER_ADMIN) {
-      throw new UnauthorizedError("Super Admin access required");
-    }
-    next();
-  };
-};
-
-export { authenticate, restrictToAuthenticatedUser, adminOnly, superAdminOnly };
+export { authenticate, restrictToAuthenticatedUser, restrictTo };
