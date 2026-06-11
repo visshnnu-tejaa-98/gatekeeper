@@ -33,10 +33,13 @@ const verifyEmailPayloadSchema = z.object({
 });
 
 const verifyEmailSchema = z.object({
-  token: z
-    .string()
-    .trim()
-    .describe("Verification email token of the registrant"),
+  body: z.object({
+    token: z
+      .string()
+      .trim()
+      .nonempty()
+      .describe("Verification email token of the registrant"),
+  }),
 });
 
 const loginSchema = z.object({
@@ -75,7 +78,9 @@ const resetPasswordSchema = z.object({
 });
 
 const refreshTokenSchema = z.object({
-  refreshToken: z.string().trim().nonempty().describe("Refresh token"),
+  body: z.object({
+    refreshToken: z.string().trim().nonempty().describe("Refresh token"),
+  }),
 });
 
 const uploadAvatarSchema = z.object({
