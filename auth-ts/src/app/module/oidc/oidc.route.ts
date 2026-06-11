@@ -5,6 +5,7 @@ import {
   deleteClient,
   getAccessToken,
   getAllApplications,
+  getApplication,
   getKeys,
   getTokenInfo,
   introspectToken,
@@ -51,6 +52,13 @@ router.post(
 );
 
 router.get("/applications", restrictToAuthenticatedUser(), getAllApplications);
+router.get(
+  "/application/:id",
+  restrictToAuthenticatedUser(),
+  // TODO: Add a schema for this
+  restrictTo(ADMIN, SUPER_ADMIN),
+  getApplication,
+);
 
 router.delete(
   "/delete-client/:id",
@@ -72,13 +80,14 @@ router.post(
   rotateSecret,
 );
 router.patch(
-  "/application/:id",
+  "/applications/:id",
   restrictToAuthenticatedUser(),
   restrictTo(ADMIN, SUPER_ADMIN),
   validate(updateApplicationParamsSchema, "params"),
   validate(updateApplicationBodySchema),
   updateApplication,
 );
+
 router.post("/revoke", validate(revokeTokenSchema), revokeToken);
 router.post("/introspect", validate(introspectTokenSchema), introspectToken);
 

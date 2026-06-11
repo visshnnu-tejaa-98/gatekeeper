@@ -203,6 +203,40 @@ const rotateApplicationSecretByApplicationId = async (
   return updated[0]!;
 };
 
+const getApplicationById = async (
+  applicationId: string,
+  userId: string,
+  role: string,
+) => {
+  const condition =
+    role === SUPER_ADMIN ?
+      eq(applicationsTable.id, applicationId)
+    : and(
+        eq(applicationsTable.id, applicationId),
+        eq(applicationsTable.userId, userId),
+      );
+
+  const apps = await db
+    .select({
+      id: applicationsTable.id,
+      name: applicationsTable.name,
+      url: applicationsTable.url,
+      redirectUri: applicationsTable.redirectUri,
+      clientId: applicationsTable.clientId,
+      createdAt: applicationsTable.createdAt,
+      updatedAt: applicationsTable.updatedAt,
+    })
+    .from(applicationsTable)
+    .where(condition);
+
+  if (apps.length === 0)
+    throw new NotFoundError(
+      "Application not found or you do not have permission to view it",
+    );
+
+  return apps[0]!;
+};
+
 const updateApplicationById = async (props: UpdateApplicationByIdProps) => {
   const { applicationId, userId, role, data } = props;
 
@@ -258,4 +292,5 @@ export {
   getApplicationByClientId,
   rotateApplicationSecretByApplicationId,
   updateApplicationById,
+  getApplicationById,
 };

@@ -34,6 +34,7 @@ import {
   verifyClientSecretAndShortCode,
   rotateApplicationSecretByApplicationId,
   updateApplicationById,
+  getApplicationById,
 } from "./oidc.utils";
 
 const registerNewClient = async (props: RegisterClientProps) => {
@@ -129,6 +130,14 @@ const rotateApplicationSecret = async (
   return { ...result, clientSecret };
 };
 
+const getClientApplicationById = async (
+  applicationId: string,
+  userId: string,
+  role: string,
+) => {
+  return await getApplicationById(applicationId, userId, role);
+};
+
 const updateClientApplication = async (
   applicationId: string,
   userId: string,
@@ -219,4 +228,5 @@ export {
   processConsent,
   rotateApplicationSecret,
   updateClientApplication,
+  getClientApplicationById,
 };

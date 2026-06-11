@@ -13,6 +13,7 @@ import {
   revokeClientToken,
   rotateApplicationSecret,
   updateClientApplication,
+  getClientApplicationById,
 } from "./oidc.service";
 import ApiResponse from "../../common/utils/api-response";
 import {
@@ -111,6 +112,14 @@ const rotateSecret = async (req: Request, res: Response) => {
   ApiResponse.success(res, "Secret rotated successfully", result);
 };
 
+const getApplication = async (req: Request, res: Response) => {
+  const { sub: userId, role } = req.user;
+  const applicationId = req.params.id as string;
+  if (!userId) throw new UnauthorizedError("Invalid session");
+  const result = await getClientApplicationById(applicationId, userId, role);
+  ApiResponse.success(res, "Application fetched successfully", result);
+};
+
 const updateApplication = async (req: Request, res: Response) => {
   const { sub: userId, role } = req.user;
   const applicationId = req.params.id as string;
@@ -145,6 +154,7 @@ export {
   authorize,
   registerClient,
   getAllApplications,
+  getApplication,
   deleteClient,
   getAccessToken,
   getTokenInfo,
