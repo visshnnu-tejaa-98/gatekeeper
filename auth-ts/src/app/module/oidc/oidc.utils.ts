@@ -8,6 +8,7 @@ import {
 import {
   CreateNewApplicationPropsType,
   RotateApplicationSecretByApplicationIdProps,
+  UpdateApplicationByIdProps,
 } from "./oidc.types";
 import {
   BadRequestError,
@@ -202,6 +203,37 @@ const rotateApplicationSecretByApplicationId = async (
   return updated[0]!;
 };
 
+const updateApplicationById = async (props: UpdateApplicationByIdProps) => {
+  const { applicationId, userId, role, data } = props;
+
+  const condition =
+    role === SUPER_ADMIN ?
+      eq(applicationsTable.id, applicationId)
+    : and(
+        eq(applicationsTable.id, applicationId),
+        eq(applicationsTable.userId, userId),
+      );
+
+  const updated = await db
+    .update(applicationsTable)
+    .set({ ...data, updatedAt: new Date() })
+    .where(condition)
+    .returning({
+      id: applicationsTable.id,
+      name: applicationsTable.name,
+      url: applicationsTable.url,
+      redirectUri: applicationsTable.redirectUri,
+      clientId: applicationsTable.clientId,
+    });
+
+  if (updated.length === 0)
+    throw new NotFoundError(
+      "Application not found or you do not have permission to update it",
+    );
+
+  return updated[0]!;
+};
+
 const insertRevokedToken = async (jti: string, exp: Date) => {
   await db.insert(revokedTokensTable).values({ jti, exp });
 };
@@ -225,4 +257,5 @@ export {
   isTokenRevoked,
   getApplicationByClientId,
   rotateApplicationSecretByApplicationId,
+  updateApplicationById,
 };

@@ -33,6 +33,7 @@ import {
   verifyClientCredentials,
   verifyClientSecretAndShortCode,
   rotateApplicationSecretByApplicationId,
+  updateApplicationById,
 } from "./oidc.utils";
 
 const registerNewClient = async (props: RegisterClientProps) => {
@@ -128,6 +129,15 @@ const rotateApplicationSecret = async (
   return { ...result, clientSecret };
 };
 
+const updateClientApplication = async (
+  applicationId: string,
+  userId: string,
+  role: string,
+  data: { name?: string; redirectUri?: string },
+) => {
+  return await updateApplicationById({ applicationId, userId, role, data });
+};
+
 const revokeClientToken = async (props: RevokeTokenProps) => {
   const {
     token,
@@ -208,4 +218,5 @@ export {
   introspectClientToken,
   processConsent,
   rotateApplicationSecret,
+  updateClientApplication,
 };

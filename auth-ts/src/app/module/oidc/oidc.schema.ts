@@ -45,6 +45,22 @@ const rotateSecretParamsSchema = z.object({
 
 type RotateSecretParamsSchemaType = z.infer<typeof rotateSecretParamsSchema>;
 
+const updateApplicationParamsSchema = z.object({
+  id: z.string().trim().nonempty(),
+});
+
+const updateApplicationBodySchema = z
+  .object({
+    name: z.string().trim().nonempty().optional(),
+    redirectUri: z.string().trim().nonempty().optional(),
+  })
+  .refine((data) => data.name !== undefined || data.redirectUri !== undefined, {
+    message: "At least one field (name or redirectUri) must be provided",
+  });
+
+type UpdateApplicationParamsSchemaType = z.infer<typeof updateApplicationParamsSchema>;
+type UpdateApplicationBodySchemaType = z.infer<typeof updateApplicationBodySchema>;
+
 const consentSchema = z.object({
   consent_token: z.string().trim().nonempty(),
   client_id: z.string().nonempty(),
@@ -63,6 +79,8 @@ export {
   deleteClientApplicationByClientIdSchema,
   getAccessTokenSchema,
   rotateSecretParamsSchema,
+  updateApplicationParamsSchema,
+  updateApplicationBodySchema,
   revokeTokenSchema,
   introspectTokenSchema,
   consentSchema,
@@ -72,6 +90,8 @@ export type {
   DeleteClientApplicationByClientIdSchemaType,
   GetAccessTokenSchemaType,
   RotateSecretParamsSchemaType,
+  UpdateApplicationParamsSchemaType,
+  UpdateApplicationBodySchemaType,
   RevokeTokenSchemaType,
   IntrospectTokenSchemaType,
   ConsentSchemaType,

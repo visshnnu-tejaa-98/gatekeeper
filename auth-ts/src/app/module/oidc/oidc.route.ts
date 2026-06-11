@@ -11,6 +11,7 @@ import {
   registerClient,
   revokeToken,
   rotateSecret,
+  updateApplication,
 } from "./oidc.controller";
 import { getUserProfile } from "../auth/auth.controller";
 import {
@@ -26,6 +27,8 @@ import {
   registerNewClientDataSchema,
   rotateSecretParamsSchema,
   revokeTokenSchema,
+  updateApplicationParamsSchema,
+  updateApplicationBodySchema,
 } from "./oidc.schema";
 import { ADMIN, SUPER_ADMIN } from "../../common/constants";
 
@@ -67,6 +70,14 @@ router.post(
   restrictTo(ADMIN, SUPER_ADMIN),
   validate(rotateSecretParamsSchema, "params"),
   rotateSecret,
+);
+router.patch(
+  "/application/:id",
+  restrictToAuthenticatedUser(),
+  restrictTo(ADMIN, SUPER_ADMIN),
+  validate(updateApplicationParamsSchema, "params"),
+  validate(updateApplicationBodySchema),
+  updateApplication,
 );
 router.post("/revoke", validate(revokeTokenSchema), revokeToken);
 router.post("/introspect", validate(introspectTokenSchema), introspectToken);

@@ -38,3 +38,13 @@ export type RotateApplicationSecretByApplicationIdProps = {
   role: string;
   hashedClientSecret: string;
 };
+
+export type UpdateApplicationByIdProps = {
+  applicationId: string;
+  userId: string;
+  role: string;
+  data: {
+    name?: string;
+    redirectUri?: string;
+  };
+};
