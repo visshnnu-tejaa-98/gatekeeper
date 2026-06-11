@@ -4,6 +4,7 @@ import { NotFoundError } from "./common/utils/api-error";
 import { errorMiddleWare } from "./common/utils/error.middleware";
 import AuthRouter from "./module/auth/auth.route";
 import OidcRouter from "./module/oidc/oidc.route";
+import UsersRouter from "./module/users/users.route";
 import { authenticate } from "./module/auth/auth.middleware";
 import { getServiceDiscoveryEndpoints } from "./module/oidc/oidc.controller";
 
@@ -20,6 +21,7 @@ const createExpressApp = () => {
 
   app.use("/api/auth", AuthRouter);
   app.use("/o", OidcRouter);
+  app.use("/api/users", UsersRouter);
 
   app.get("/.well-known/openid-configuration", getServiceDiscoveryEndpoints);
 
