@@ -77,7 +77,7 @@ const getUserByEmailVerifyToken = async (token: string) => {
 const updateUserAfterEmailVerification = async (email: string) => {
   const updatedUsers = await db
     .update(usersTable)
-    .set({ isVerified: true, verificationToken: null })
+    .set({ isVerified: true, verificationToken: null, updatedAt: new Date() })
     .where(eq(usersTable.email, email))
     .returning({
       id: usersTable.id,
@@ -97,7 +97,7 @@ const updateUserWithRefreshToken = async (
 ) => {
   const users = await db
     .update(usersTable)
-    .set({ refreshToken })
+    .set({ refreshToken, updatedAt: new Date() })
     .where(eq(usersTable.email, email))
     .returning({ id: usersTable.id });
 
@@ -111,7 +111,7 @@ const logoutUser = async (userId: string) => {
   try {
     await db
       .update(usersTable)
-      .set({ refreshToken: null })
+      .set({ refreshToken: null, updatedAt: new Date() })
       .where(eq(usersTable.id, userId));
   } catch (err) {
     throw new BadRequestError("Failed to logout the user");
@@ -122,7 +122,7 @@ const logoutUser = async (userId: string) => {
 const updateUserWithResetToken = async (resetToken: string, email: string) => {
   const users = await db
     .update(usersTable)
-    .set({ resetToken })
+    .set({ resetToken, updatedAt: new Date() })
     .where(eq(usersTable.email, email))
     .returning({ id: usersTable.id, resetToken: usersTable.resetToken });
   if (users.length === 0) throw new BadRequestError();
@@ -145,7 +145,7 @@ const getUserByResetToken = async (token: string) => {
 const updateUserWithNewPassword = async (password: string, email: string) => {
   const users = await db
     .update(usersTable)
-    .set({ password })
+    .set({ password, updatedAt: new Date() })
     .where(eq(usersTable.email, email))
     .returning({ id: usersTable.id });
   if (users.length === 0) throw new BadRequestError();
@@ -175,7 +175,7 @@ const getUserDetailsByUserId = async (id: string) => {
 const uploadAvatarInDB = async (userId: string, avatarUrl: string) => {
   const users = await db
     .update(usersTable)
-    .set({ avatar: avatarUrl })
+    .set({ avatar: avatarUrl, updatedAt: new Date() })
     .where(eq(usersTable.id, userId))
     .returning({ id: usersTable.id, avatarUrl: usersTable.avatar });
 
@@ -196,7 +196,7 @@ const updateUserInfo = async (
 
   const updateUsers = await db
     .update(usersTable)
-    .set(payload)
+    .set({ ...payload, updatedAt: new Date() })
     .where(condition)
     .returning({
       id: usersTable.id,
@@ -272,7 +272,7 @@ const getRedirectUriByClientId = async (clientId: string) => {
 const revokeRefreshTokenByHash = async (hashedToken: string): Promise<boolean> => {
   const updated = await db
     .update(usersTable)
-    .set({ refreshToken: null })
+    .set({ refreshToken: null, updatedAt: new Date() })
     .where(eq(usersTable.refreshToken, hashedToken))
     .returning({ id: usersTable.id });
   return updated.length > 0;
