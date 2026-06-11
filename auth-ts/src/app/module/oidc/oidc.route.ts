@@ -28,67 +28,77 @@ import {
   registerNewClientDataSchema,
   rotateSecretParamsSchema,
   revokeTokenSchema,
-  updateApplicationParamsSchema,
-  updateApplicationBodySchema,
+  getApplicationByIdSchema,
+  updateApplicationSchema,
 } from "./oidc.schema";
 import { ADMIN, SUPER_ADMIN } from "../../common/constants";
 
 const router = express.Router();
 
+// =========================================================================
+// 🌐 OPENID CONNECT / OAUTH2 CORE ENDPOINTS (Public Protocol Gateway)
+// =========================================================================
+
 router.get("/jwks.json", getKeys);
 router.get("/authorize", authorize);
-router.get("/userInfo", getUserProfile);
-router.get(
-  "/access-token",
-  validate(getAccessTokenSchema, "query"),
-  getAccessToken,
+router.post("/consent", validate(consentSchema), consent);
+router.get("/access-token", validate(getAccessTokenSchema), getAccessToken);
+
+// Back-channel protocol endpoints (Relying parties call these with credentials)
+router.post("/revoke", validate(revokeTokenSchema), revokeToken);
+router.post("/introspect", validate(introspectTokenSchema), introspectToken);
+
+// =========================================================================
+// 🔒 PROTECTED CORE ENDPOINTS (Requires User Session Auth)
+// =========================================================================
+const protectedRouter = express.Router();
+protectedRouter.use(restrictToAuthenticatedUser());
+
+protectedRouter.get("/userInfo", getUserProfile);
+protectedRouter.get("/token", getTokenInfo);
+protectedRouter.get("/applications", getAllApplications);
+
+// =========================================================================
+// 🛡️ APPLICATION MANAGEMENT LAYER (Admin & Super Admin Controls)
+// =========================================================================
+
+const managementRouter = express.Router();
+managementRouter.use(restrictTo(ADMIN, SUPER_ADMIN));
+
+managementRouter.get(
+  "/application/:id",
+  validate(getApplicationByIdSchema),
+  getApplication,
 );
-router.post(
+managementRouter.post(
+  "/rotate-secret/:id",
+  validate(rotateSecretParamsSchema),
+  rotateSecret,
+);
+managementRouter.patch(
+  "/applications/:id",
+  validate(updateApplicationSchema),
+  updateApplication,
+);
+
+// Granular route overrides for distinct capabilities
+
+managementRouter.post(
   "/register-client",
-  restrictToAuthenticatedUser(),
   restrictTo(ADMIN),
   validate(registerNewClientDataSchema),
   registerClient,
 );
 
-router.get("/applications", restrictToAuthenticatedUser(), getAllApplications);
-router.get(
-  "/application/:id",
-  restrictToAuthenticatedUser(),
-  // TODO: Add a schema for this
-  restrictTo(ADMIN, SUPER_ADMIN),
-  getApplication,
-);
-
-router.delete(
+managementRouter.delete(
   "/delete-client/:id",
   restrictToAuthenticatedUser(),
-  validate(deleteClientApplicationByClientIdSchema, "params"),
-  // TODO Check delete functionality with multipe user roles
+  validate(deleteClientApplicationByClientIdSchema),
   restrictTo(SUPER_ADMIN),
   deleteClient,
 );
 
-router.get("/token", restrictToAuthenticatedUser(), getTokenInfo);
-router.post("/consent", validate(consentSchema), consent);
-
-router.post(
-  "/rotate-secret/:id",
-  restrictToAuthenticatedUser(),
-  restrictTo(ADMIN, SUPER_ADMIN),
-  validate(rotateSecretParamsSchema, "params"),
-  rotateSecret,
-);
-router.patch(
-  "/applications/:id",
-  restrictToAuthenticatedUser(),
-  restrictTo(ADMIN, SUPER_ADMIN),
-  validate(updateApplicationParamsSchema, "params"),
-  validate(updateApplicationBodySchema),
-  updateApplication,
-);
-
-router.post("/revoke", validate(revokeTokenSchema), revokeToken);
-router.post("/introspect", validate(introspectTokenSchema), introspectToken);
+router.use("/", protectedRouter);
+protectedRouter.use("/", managementRouter);
 
 export default router;

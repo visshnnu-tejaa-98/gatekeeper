@@ -7,29 +7,30 @@ import {
 } from "../../common/constants";
 
 const registerSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2)
-    .max(50)
-    .describe("Full name of the registrant"),
-  email: z.string().email().lowercase().describe("Email of the registrant"),
-  password: z
-    .string()
-    .trim()
-    .min(8)
-    .max(100)
-    .describe("Password of the regsitrant"),
-  role: z.enum(ALLOWED_ROLES).default(USER),
+  body: z.object({
+    name: z
+      .string()
+      .trim()
+      .min(2)
+      .max(50)
+      .describe("Full name of the registrant"),
+    email: z.string().email().lowercase().describe("Email of the registrant"),
+    password: z
+      .string()
+      .trim()
+      .min(8)
+      .max(100)
+      .describe("Password of the regsitrant"),
+    role: z.enum(ALLOWED_ROLES).default(USER),
+  }),
+  query: z.object({
+    client_id: z.string().optional(),
+  }),
 });
-
-type RegisterInputType = z.infer<typeof registerSchema>;
 
 const verifyEmailPayloadSchema = z.object({
   email: z.email().nonempty().describe("email of the user who wants to verify"),
 });
-
-type VerifyEmailPayloadSchemaType = z.infer<typeof verifyEmailPayloadSchema>;
 
 const verifyEmailSchema = z.object({
   token: z
@@ -38,71 +39,69 @@ const verifyEmailSchema = z.object({
     .describe("Verification email token of the registrant"),
 });
 
-type VerificationEmailSchemaType = z.infer<typeof verifyEmailSchema>;
-
 const loginSchema = z.object({
-  email: z.string().email().lowercase().describe("Email of the registrant"),
-  password: z
-    .string()
-    .trim()
-    .min(8)
-    .max(100)
-    .describe("Password of the regsitrant"),
+  body: z.object({
+    email: z.string().email().lowercase().describe("Email of the registrant"),
+    password: z
+      .string()
+      .trim()
+      .min(8)
+      .max(100)
+      .describe("Password of the regsitrant"),
+  }),
+  query: z.object({
+    client_id: z.string().optional(),
+  }),
 });
-
-type LoginSchemaType = z.infer<typeof loginSchema>;
-
-const loginUserQuerySchema = z.object({
-  client_id: z.string().optional(),
-});
-
-type LoginUserQuerySchemaType = z.infer<typeof loginUserQuerySchema>;
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email().lowercase().describe("Email of the registrant"),
+  body: z.object({
+    email: z.string().email().lowercase().describe("Email of the registrant"),
+  }),
 });
 
-type ForgotPasswordSchemaType = z.infer<typeof forgotPasswordSchema>;
-
-const resetPasswordSchemaFromBody = z.object({
-  password: z
-    .string()
-    .trim()
-    .min(8)
-    .max(100)
-    .describe("Password of the regsitrant"),
+const resetPasswordSchema = z.object({
+  body: z.object({
+    password: z
+      .string()
+      .trim()
+      .min(8)
+      .max(100)
+      .describe("Password of the regsitrant"),
+  }),
+  query: z.object({
+    token: z.string().trim().describe("Reset Password token of the registrant"),
+  }),
 });
-
-type ResetPasswordSchemaFromBodyType = z.infer<
-  typeof resetPasswordSchemaFromBody
->;
-
-const resetPasswordSchemaFromParams = z.object({
-  token: z.string().trim().describe("Reset Password token of the registrant"),
-});
-
-type ResetPasswordSchemaFromParamsType = z.infer<
-  typeof resetPasswordSchemaFromParams
->;
 
 const refreshTokenSchema = z.object({
   refreshToken: z.string().trim().nonempty().describe("Refresh token"),
 });
 
+const uploadAvatarSchema = z.object({
+  file: z
+    .object({
+      size: z.number(),
+      mimetype: z.string(),
+      buffer: z.instanceof(Buffer),
+    })
+    .refine(
+      (file) => file.size <= MAX_AVATAR_FILE_SIZE,
+      "Max image size is 5MB",
+    )
+    .refine(
+      (file) => ALLOWED_FILE_TYPES.includes(file.mimetype),
+      "Only png, jpeg and pdf files are supported",
+    ),
+});
+
+type RegisterInputType = z.infer<typeof registerSchema>;
+type VerifyEmailPayloadSchemaType = z.infer<typeof verifyEmailPayloadSchema>;
+type VerificationEmailSchemaType = z.infer<typeof verifyEmailSchema>;
+type LoginSchemaType = z.infer<typeof loginSchema>;
+type ForgotPasswordSchemaType = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;
 type RefreshTokenSchemaType = z.infer<typeof refreshTokenSchema>;
-
-const uploadAvatarSchema = z
-  .object({
-    size: z.number(),
-    mimetype: z.string(),
-    buffer: z.instanceof(Buffer),
-  })
-  .refine((file) => file.size <= MAX_AVATAR_FILE_SIZE, "Max image size is 5MB")
-  .refine(
-    (file) => ALLOWED_FILE_TYPES.includes(file.mimetype),
-    "Only png, jpeg and pdf files are supported",
-  );
-
 type UploadAvatarSchemaType = z.infer<typeof uploadAvatarSchema>;
 
 export {
@@ -110,10 +109,8 @@ export {
   verifyEmailSchema,
   loginSchema,
   forgotPasswordSchema,
-  resetPasswordSchemaFromBody,
-  resetPasswordSchemaFromParams,
+  resetPasswordSchema,
   uploadAvatarSchema,
-  loginUserQuerySchema,
   verifyEmailPayloadSchema,
   refreshTokenSchema,
 };
@@ -122,10 +119,8 @@ export type {
   VerificationEmailSchemaType,
   LoginSchemaType,
   ForgotPasswordSchemaType,
-  ResetPasswordSchemaFromBodyType,
-  ResetPasswordSchemaFromParamsType,
+  ResetPasswordSchemaType,
   UploadAvatarSchemaType,
-  LoginUserQuerySchemaType,
   VerifyEmailPayloadSchemaType,
   RefreshTokenSchemaType,
 };

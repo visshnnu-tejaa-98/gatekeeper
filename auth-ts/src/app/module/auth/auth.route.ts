@@ -15,11 +15,9 @@ import { validate } from "../../common/zod/zod.midleware";
 import {
   forgotPasswordSchema,
   loginSchema,
-  loginUserQuerySchema,
   refreshTokenSchema,
   registerSchema,
-  resetPasswordSchemaFromBody,
-  resetPasswordSchemaFromParams,
+  resetPasswordSchema,
   uploadAvatarSchema,
   verifyEmailPayloadSchema,
   verifyEmailSchema,
@@ -27,53 +25,49 @@ import {
 import { restrictTo, restrictToAuthenticatedUser } from "./auth.middleware";
 import { upload } from "../../common/utils/multer";
 import { ADMIN } from "../../common/constants";
+import ApiResponse from "../../common/utils/api-response";
 
 const router = express.Router();
 
-router.post(
-  "/register",
-  validate(registerSchema),
-  validate(loginUserQuerySchema, "query"),
-  registerUser,
-);
-router.get(
+// ==========================================
+// 🔓 PUBLIC ROUTES (No Auth Required)
+// ==========================================
+
+router.post("/register", validate(registerSchema), registerUser);
+router.post("/login", validate(loginSchema), loginUser);
+router.post("/refresh", validate(refreshTokenSchema), refreshToken);
+router.post("/verify", validate(verifyEmailSchema), verifyUserEmail);
+router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+
+// ==========================================
+// 🔒 PROTECTED ROUTES (Requires Authentication)
+// ==========================================
+const protectedRouter = express.Router();
+protectedRouter.use(restrictToAuthenticatedUser());
+
+protectedRouter.get("/profile", getUserProfile);
+protectedRouter.post("/logout", logoutUser);
+protectedRouter.get(
   "/verify-email-request",
   validate(verifyEmailPayloadSchema),
-  restrictToAuthenticatedUser(),
   verifyEmailRequest,
 );
-router.post("/verify", validate(verifyEmailSchema), verifyUserEmail);
-router.post(
-  "/login",
-  validate(loginSchema),
-  validate(loginUserQuerySchema, "query"),
-  loginUser,
-);
-router.get("/profile", restrictToAuthenticatedUser(), getUserProfile);
-router.post("/logout", restrictToAuthenticatedUser(), logoutUser);
-router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
-router.post(
-  "/reset-password",
-  validate(resetPasswordSchemaFromBody, "body"),
-  validate(resetPasswordSchemaFromParams, "query"),
-  resetPassword,
-);
-router.post("/refresh", validate(refreshTokenSchema), refreshToken);
-router.post(
+protectedRouter.post(
   "/upload",
-  restrictToAuthenticatedUser(),
   upload.single("avatar"),
-  validate(uploadAvatarSchema, "file"),
+  validate(uploadAvatarSchema),
   uploadUserAvatar,
 );
 
-router.get(
-  "/admin",
-  restrictToAuthenticatedUser(),
-  restrictTo(ADMIN),
-  (req, res) => {
-    res.json({ message: "This is admin only route" });
-  },
-);
+// ==========================================
+// 🛡️ ADMIN-ONLY ROUTES (Requires Admin Role)
+// ==========================================
+
+router.get("/admin", restrictTo(ADMIN), (req, res) => {
+  ApiResponse.success(res, "This is admin only route");
+});
+
+router.use("/", protectedRouter);
 
 export default router;

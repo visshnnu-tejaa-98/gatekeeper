@@ -2,97 +2,116 @@ import { z } from "zod";
 import { TOKEN_TYPES } from "../../common/constants";
 
 const registerNewClientDataSchema = z.object({
-  applicationDisplayName: z
-    .string("Application Display Name should be string")
-    .trim()
-    .nonempty(),
-  applicationUrl: z
-    .string("Application URL should be string")
-    .trim()
-    .nonempty(),
-  redirectUri: z.string("Redirect URI should be string").trim().nonempty(),
+  body: z.object({
+    applicationDisplayName: z
+      .string("Application Display Name should be string")
+      .trim()
+      .nonempty(),
+    applicationUrl: z
+      .string("Application URL should be string")
+      .trim()
+      .nonempty(),
+    redirectUri: z.string("Redirect URI should be string").trim().nonempty(),
+  }),
+});
+
+const deleteClientApplicationByClientIdSchema = z.object({
+  params: z.object({
+    id: z.string().trim().nonempty(),
+  }),
+});
+
+const getAccessTokenSchema = z.object({
+  query: z.object({
+    short_code: z.string().nonempty(),
+    client_secret: z.string().nonempty(),
+  }),
+});
+
+const clientCredentialsBaseSchema = z.object({
+  body: z.object({
+    token: z.string().trim().nonempty(),
+    token_type_hint: z.enum(TOKEN_TYPES).optional(),
+    client_id: z.string().nonempty(),
+    client_secret: z.string().nonempty(),
+  }),
+});
+
+const rotateSecretParamsSchema = z.object({
+  params: z.object({
+    id: z.string().trim().nonempty(),
+  }),
+});
+
+const updateApplicationSchema = z.object({
+  body: z
+    .object({
+      name: z.string().trim().nonempty().optional(),
+      redirectUri: z.string().trim().nonempty().optional(),
+    })
+    .refine(
+      (data) => data.name !== undefined || data.redirectUri !== undefined,
+      {
+        message: "At least one field (name or redirectUri) must be provided",
+      },
+    ),
+  params: z.object({
+    id: z.string().trim().nonempty(),
+  }),
+});
+
+const consentSchema = z.object({
+  body: z.object({
+    consent_token: z.string().trim().nonempty(),
+    client_id: z.string().nonempty(),
+  }),
+});
+
+const revokeTokenSchema = clientCredentialsBaseSchema;
+
+const introspectTokenSchema = clientCredentialsBaseSchema;
+
+const getApplicationByIdSchema = z.object({
+  params: z.object({
+    id: z.string().nonempty(),
+  }),
 });
 
 type RegisterNewClientDataSchemaType = z.infer<
   typeof registerNewClientDataSchema
 >;
 
-const deleteClientApplicationByClientIdSchema = z.object({
-  id: z.string().trim().nonempty(),
-});
-
 type DeleteClientApplicationByClientIdSchemaType = z.infer<
   typeof deleteClientApplicationByClientIdSchema
 >;
 
-const getAccessTokenSchema = z.object({
-  short_code: z.string().nonempty(),
-  client_secret: z.string().nonempty(),
-});
-
 type GetAccessTokenSchemaType = z.infer<typeof getAccessTokenSchema>;
-
-const clientCredentialsBaseSchema = z.object({
-  token: z.string().trim().nonempty(),
-  token_type_hint: z.enum(TOKEN_TYPES).optional(),
-  client_id: z.string().nonempty(),
-  client_secret: z.string().nonempty(),
-});
-
-const rotateSecretParamsSchema = z.object({
-  id: z.string().trim().nonempty(),
-});
-
 type RotateSecretParamsSchemaType = z.infer<typeof rotateSecretParamsSchema>;
-
-const updateApplicationParamsSchema = z.object({
-  id: z.string().trim().nonempty(),
-});
-
-const updateApplicationBodySchema = z
-  .object({
-    name: z.string().trim().nonempty().optional(),
-    redirectUri: z.string().trim().nonempty().optional(),
-  })
-  .refine((data) => data.name !== undefined || data.redirectUri !== undefined, {
-    message: "At least one field (name or redirectUri) must be provided",
-  });
-
-type UpdateApplicationParamsSchemaType = z.infer<typeof updateApplicationParamsSchema>;
-type UpdateApplicationBodySchemaType = z.infer<typeof updateApplicationBodySchema>;
-
-const consentSchema = z.object({
-  consent_token: z.string().trim().nonempty(),
-  client_id: z.string().nonempty(),
-});
-
 type ConsentSchemaType = z.infer<typeof consentSchema>;
-
-const revokeTokenSchema = clientCredentialsBaseSchema;
+type UpdateApplicationSchemaType = z.infer<typeof updateApplicationSchema>;
 type RevokeTokenSchemaType = z.infer<typeof revokeTokenSchema>;
-
-const introspectTokenSchema = clientCredentialsBaseSchema;
 type IntrospectTokenSchemaType = z.infer<typeof introspectTokenSchema>;
+type GetApplicationByIdSchemaType = z.infer<typeof getApplicationByIdSchema>;
 
 export {
   registerNewClientDataSchema,
   deleteClientApplicationByClientIdSchema,
   getAccessTokenSchema,
   rotateSecretParamsSchema,
-  updateApplicationParamsSchema,
-  updateApplicationBodySchema,
+  updateApplicationSchema,
   revokeTokenSchema,
   introspectTokenSchema,
   consentSchema,
+  getApplicationByIdSchema,
 };
 export type {
   RegisterNewClientDataSchemaType,
   DeleteClientApplicationByClientIdSchemaType,
   GetAccessTokenSchemaType,
   RotateSecretParamsSchemaType,
-  UpdateApplicationParamsSchemaType,
-  UpdateApplicationBodySchemaType,
+  UpdateApplicationSchemaType,
   RevokeTokenSchemaType,
   IntrospectTokenSchemaType,
   ConsentSchemaType,
+  GetApplicationByIdSchemaType,
 };

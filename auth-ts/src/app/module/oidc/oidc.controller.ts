@@ -73,7 +73,7 @@ const getAllApplications = async (req: Request, res: Response) => {
 };
 
 const deleteClient = async (
-  req: Request<DeleteClientApplicationByClientIdSchemaType>,
+  req: Request<DeleteClientApplicationByClientIdSchemaType["params"]>,
   res: Response,
 ) => {
   const { id: applicationId } = req.params;
