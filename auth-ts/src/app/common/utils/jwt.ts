@@ -40,8 +40,8 @@ const hash = async (payload: string, salt: string) => {
   return await bcrypt.hash(payload, salt);
 };
 
-const hashToken = (token: string) => {
-  return createHash("sha256").update(token).digest("hex");
+const hashToken = (token: string, algorithm = "sha256") => {
+  return createHash(algorithm).update(token).digest("hex");
 };
 
 const generateVerifyEmailToken = ({

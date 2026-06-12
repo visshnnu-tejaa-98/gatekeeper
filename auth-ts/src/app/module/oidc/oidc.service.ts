@@ -246,6 +246,7 @@ const processConsent = async (
 const generateUserToken = async ({
   client_id,
   code,
+  algorithm,
   code_verifier,
 }: {
   client_id: string;
@@ -284,7 +285,7 @@ const generateUserToken = async ({
     id: userDetails.id,
     role: userDetails.role,
   });
-  const hashedRefreshToken = hashToken(refreshToken);
+  const hashedRefreshToken = hashToken(refreshToken, algorithm);
 
   await updateUserWithRefreshToken(hashedRefreshToken, userDetails.email);
 
