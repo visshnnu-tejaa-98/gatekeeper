@@ -48,3 +48,17 @@ export type UpdateApplicationByIdProps = {
     redirectUri?: string;
   };
 };
+
+export type saveAuthorizationCodeProps = {
+  code: string;
+  userId: string;
+  clientId: string;
+  codeChallenge: string;
+  algorithm: string;
+};
+
+export type ExchangeTokenProps = {
+  code: string;
+  codeVerifier: string;
+  clientId: string;
+};

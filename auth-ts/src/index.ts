@@ -1,9 +1,12 @@
 import "dotenv/config";
 import { createServer } from "node:http";
 import createExpressApp from "./app";
+import { cleanExpiredAuthCodes } from "./app/module/oidc/oidc.utils";
 
-const main = () => {
+const main = async () => {
   try {
+    await cleanExpiredAuthCodes();
+
     const server = createServer(createExpressApp());
     const PORT = process.env.PORT;
     const NODE_ENV = process.env.NODE_ENV;

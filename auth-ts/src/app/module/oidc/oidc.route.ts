@@ -11,6 +11,7 @@ import {
   introspectToken,
   registerClient,
   revokeToken,
+  generatToken,
   rotateSecret,
   updateApplication,
 } from "./oidc.controller";
@@ -30,6 +31,8 @@ import {
   revokeTokenSchema,
   getApplicationByIdSchema,
   updateApplicationSchema,
+  authorizeSchema,
+  generatTokenSchema,
 } from "./oidc.schema";
 import { ADMIN, SUPER_ADMIN } from "../../common/constants";
 
@@ -40,9 +43,10 @@ const router = express.Router();
 // =========================================================================
 
 router.get("/jwks.json", getKeys);
-router.get("/authorize", authorize);
+router.get("/authorize", validate(authorizeSchema), authorize);
 router.post("/consent", validate(consentSchema), consent);
 router.get("/access-token", validate(getAccessTokenSchema), getAccessToken);
+router.post("/token", validate(generatTokenSchema), generatToken);
 
 // Back-channel protocol endpoints (Relying parties call these with credentials)
 router.post("/revoke", validate(revokeTokenSchema), revokeToken);

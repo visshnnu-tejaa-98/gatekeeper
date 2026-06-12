@@ -5,7 +5,11 @@ import {
   shortCodesTable,
   usersTable,
 } from "../../../db/schema";
-import { BadRequestError, NotFoundError, UnauthorizedError } from "../../common/utils/api-error";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../../common/utils/api-error";
 
 type InsertUserServicePayload = {
   name: string;
@@ -28,7 +32,7 @@ type UserUpdatePayload = Partial<typeof usersTable.$inferInsert>;
 type addNewShortCodeProps = {
   userId: string;
   clientId: string;
-  shortCode: string;
+  code: string;
 };
 
 const checkUserWithEmailExists = async (email: string) => {
@@ -214,7 +218,7 @@ const updateUserInfo = async (
 };
 
 const addNewShortCode = async (props: addNewShortCodeProps) => {
-  const { userId, clientId, shortCode } = props;
+  const { userId, clientId, code } = props;
   const existingShortCodes = await db
     .select({
       shortCodeId: shortCodesTable.id,
@@ -236,7 +240,7 @@ const addNewShortCode = async (props: addNewShortCodeProps) => {
   if (!existingShortCode) {
     const newShortCode = await db
       .insert(shortCodesTable)
-      .values({ shortcode: shortCode, userId, clientId })
+      .values({ shortcode: code, userId, clientId })
       .returning({ shortCode: shortCodesTable.shortcode });
 
     if (!newShortCode || newShortCode.length === 0) {
@@ -247,7 +251,7 @@ const addNewShortCode = async (props: addNewShortCodeProps) => {
 
   const updatedRows = await db
     .update(shortCodesTable)
-    .set({ shortcode: shortCode })
+    .set({ shortcode: code })
     .where(eq(shortCodesTable.id, existingShortCode.shortCodeId))
     .returning({ shortCode: shortCodesTable.shortcode });
 
@@ -269,7 +273,9 @@ const getRedirectUriByClientId = async (clientId: string) => {
   return redirectUri;
 };
 
-const revokeRefreshTokenByHash = async (hashedToken: string): Promise<boolean> => {
+const revokeRefreshTokenByHash = async (
+  hashedToken: string,
+): Promise<boolean> => {
   const updated = await db
     .update(usersTable)
     .set({ refreshToken: null, updatedAt: new Date() })

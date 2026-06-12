@@ -64,6 +64,17 @@ const consentSchema = z.object({
   body: z.object({
     consent_token: z.string().trim().nonempty(),
     client_id: z.string().nonempty(),
+    code_challange: z.string().optional(),
+    algorithm: z.string().optional(),
+  }),
+});
+
+const generatTokenSchema = z.object({
+  body: z.object({
+    code: z.string().trim().nonempty(),
+    client_id: z.string().trim().nonempty(),
+    algorithm: z.enum(["SHA-256"]).default("SHA-256"),
+    code_verifier: z.string().trim().nonempty(),
   }),
 });
 
@@ -74,6 +85,14 @@ const introspectTokenSchema = clientCredentialsBaseSchema;
 const getApplicationByIdSchema = z.object({
   params: z.object({
     id: z.string().nonempty(),
+  }),
+});
+
+const authorizeSchema = z.object({
+  query: z.object({
+    client_id: z.string().trim().nonempty(),
+    code_challange: z.string().trim().nonempty(),
+    algorithm: z.enum(["SHA-256"]).default("SHA-256"),
   }),
 });
 
@@ -89,9 +108,11 @@ type GetAccessTokenSchemaType = z.infer<typeof getAccessTokenSchema>;
 type RotateSecretParamsSchemaType = z.infer<typeof rotateSecretParamsSchema>;
 type ConsentSchemaType = z.infer<typeof consentSchema>;
 type UpdateApplicationSchemaType = z.infer<typeof updateApplicationSchema>;
+type GeneratTokenSchemaType = z.infer<typeof generatTokenSchema>;
 type RevokeTokenSchemaType = z.infer<typeof revokeTokenSchema>;
 type IntrospectTokenSchemaType = z.infer<typeof introspectTokenSchema>;
 type GetApplicationByIdSchemaType = z.infer<typeof getApplicationByIdSchema>;
+type AuthorizeSchemaType = z.infer<typeof authorizeSchema>;
 
 export {
   registerNewClientDataSchema,
@@ -99,10 +120,12 @@ export {
   getAccessTokenSchema,
   rotateSecretParamsSchema,
   updateApplicationSchema,
+  generatTokenSchema,
   revokeTokenSchema,
   introspectTokenSchema,
   consentSchema,
   getApplicationByIdSchema,
+  authorizeSchema,
 };
 export type {
   RegisterNewClientDataSchemaType,
@@ -110,8 +133,10 @@ export type {
   GetAccessTokenSchemaType,
   RotateSecretParamsSchemaType,
   UpdateApplicationSchemaType,
+  GeneratTokenSchemaType,
   RevokeTokenSchemaType,
   IntrospectTokenSchemaType,
   ConsentSchemaType,
   GetApplicationByIdSchemaType,
+  AuthorizeSchemaType,
 };

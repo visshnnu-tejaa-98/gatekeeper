@@ -35,6 +35,9 @@ import {
   rotateApplicationSecretByApplicationId,
   updateApplicationById,
   getApplicationById,
+  addNewAuthorizationCode,
+  getAuthorizationCode,
+  markAuthCodeUsed,
 } from "./oidc.utils";
 
 const registerNewClient = async (props: RegisterClientProps) => {
@@ -130,6 +133,10 @@ const rotateApplicationSecret = async (
   return { ...result, clientSecret };
 };
 
+const validateAuthorizeRequest = async (clientId: string) => {
+  return await getApplicationByClientId(clientId);
+};
+
 const getClientApplicationById = async (
   applicationId: string,
   userId: string,
@@ -201,7 +208,12 @@ const introspectClientToken = async (props: IntrospectTokenProps) => {
   }
 };
 
-const processConsent = async (consentToken: string, clientId: string) => {
+const processConsent = async (
+  consentToken: string,
+  clientId: string,
+  code_challange?: string,
+  algorithm?: string,
+) => {
   const decoded = verifyConsentToken(consentToken);
 
   if (decoded.type !== "consent")
@@ -212,10 +224,71 @@ const processConsent = async (consentToken: string, clientId: string) => {
 
   const { redirectUri } = await getApplicationByClientId(clientId);
 
-  const shortCode = generateRandomString(3);
-  await addNewShortCode({ shortCode, userId: decoded.sub, clientId });
+  const code =
+    !code_challange ? generateRandomString(3) : generateRandomString(32);
+  // PKCE Flow
+  if (code_challange && algorithm) {
+    await addNewAuthorizationCode({
+      code,
+      userId: decoded.sub,
+      clientId,
+      codeChallenge: code_challange,
+      algorithm,
+    });
+  } else {
+    // Normal flow
+    await addNewShortCode({ code, userId: decoded.sub, clientId });
+  }
 
-  return { redirectUriWithShortcode: `${redirectUri}?shortcode=${shortCode}` };
+  return { redirectUriWithShortcode: `${redirectUri}?code=${code}` };
+};
+
+const generateUserToken = async ({
+  client_id,
+  code,
+  code_verifier,
+}: {
+  client_id: string;
+  code: string;
+  algorithm: string;
+  code_verifier: string;
+}) => {
+  const authCode = await getAuthorizationCode(code, client_id);
+
+  if (authCode.used)
+    throw new BadRequestError("Authorization code has already been used");
+
+  if (authCode.expiresAt < new Date())
+    throw new BadRequestError("Authorization code has expired");
+
+  const hashedVerifier = hashToken(code_verifier);
+  if (hashedVerifier !== authCode.codeChallenge)
+    throw new BadRequestError("Invalid code_verifier");
+
+  await markAuthCodeUsed(authCode.id);
+
+  const userDetails = await getUserDetailsByUserId(authCode.userId);
+
+  const claims: AccessTokenClaims = {
+    iss: env.ISSUER_URL || "http://localhost:9000",
+    sub: userDetails.id,
+    email: userDetails.email,
+    email_verified: userDetails.isEmailVerified ?? false,
+    name: userDetails.name,
+    picture: userDetails.avatar ?? "",
+    role: userDetails.role,
+  };
+
+  const accessToken = generateAccessToken(claims);
+  const refreshToken = generateRefeshToken({
+    id: userDetails.id,
+    role: userDetails.role,
+  });
+  const hashedRefreshToken = hashToken(refreshToken);
+
+  await updateUserWithRefreshToken(hashedRefreshToken, userDetails.email);
+
+  return { accessToken, refreshToken };
 };
 
 export {
@@ -229,4 +302,8 @@ export {
   rotateApplicationSecret,
   updateClientApplication,
   getClientApplicationById,
+  validateAuthorizeRequest,
+  generateUserToken,
 };
+
+//  "https://npmjs.org?code=dfe7b3288817ccb6e44ceb653fac7c0022a2ea2df59c805fe161e083bf0bd85c"

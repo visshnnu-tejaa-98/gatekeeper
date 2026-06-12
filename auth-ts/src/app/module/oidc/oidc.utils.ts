@@ -1,13 +1,15 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt, or } from "drizzle-orm";
 import db from "../../../db";
 import {
   applicationsTable,
   revokedTokensTable,
   shortCodesTable,
+  authorizationCodesTable,
 } from "../../../db/schema";
 import {
   CreateNewApplicationPropsType,
   RotateApplicationSecretByApplicationIdProps,
+  saveAuthorizationCodeProps,
   UpdateApplicationByIdProps,
 } from "./oidc.types";
 import {
@@ -149,7 +151,6 @@ const getApplicationByClientId = async (clientId: string) => {
     })
     .from(applicationsTable)
     .where(eq(applicationsTable.clientId, clientId));
-
   if (apps.length === 0) throw new NotFoundError("Application not found");
   return apps[0]!;
 };
@@ -280,6 +281,57 @@ const isTokenRevoked = async (jti: string): Promise<boolean> => {
   return rows.length > 0;
 };
 
+const addNewAuthorizationCode = async (props: saveAuthorizationCodeProps) => {
+  const { code, userId, clientId, codeChallenge, algorithm } = props;
+  const newCode = await db
+    .insert(authorizationCodesTable)
+    .values({
+      code,
+      userId,
+      clientId,
+      codeChallenge,
+      algorithm,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 mminutes
+    })
+    .returning();
+  return newCode;
+};
+
+const getAuthorizationCode = async (code: string, clientId: string) => {
+  const rows = await db
+    .select()
+    .from(authorizationCodesTable)
+    .where(
+      and(
+        eq(authorizationCodesTable.code, code),
+        eq(authorizationCodesTable.clientId, clientId),
+      ),
+    );
+
+  if (rows.length === 0)
+    throw new NotFoundError("Authorization code not found");
+
+  return rows[0]!;
+};
+
+const markAuthCodeUsed = async (id: string) => {
+  await db
+    .update(authorizationCodesTable)
+    .set({ used: true })
+    .where(eq(authorizationCodesTable.id, id));
+};
+
+const cleanExpiredAuthCodes = async () => {
+  await db
+    .delete(authorizationCodesTable)
+    .where(
+      or(
+        lt(authorizationCodesTable.expiresAt, new Date()),
+        eq(authorizationCodesTable.used, true),
+      ),
+    );
+};
+
 export {
   getApplicationDetailsByUserIdAndApplicationUrl,
   createNewApplication,
@@ -293,4 +345,8 @@ export {
   rotateApplicationSecretByApplicationId,
   updateApplicationById,
   getApplicationById,
+  addNewAuthorizationCode,
+  getAuthorizationCode,
+  markAuthCodeUsed,
+  cleanExpiredAuthCodes,
 };

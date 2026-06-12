@@ -14,6 +14,8 @@ import {
   rotateApplicationSecret,
   updateClientApplication,
   getClientApplicationById,
+  validateAuthorizeRequest,
+  generateUserToken,
 } from "./oidc.service";
 import ApiResponse from "../../common/utils/api-response";
 import {
@@ -21,9 +23,14 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../../common/utils/api-error";
-import { DeleteClientApplicationByClientIdSchemaType } from "./oidc.schema";
+import {
+  AuthorizeSchemaType,
+  ConsentSchemaType,
+  DeleteClientApplicationByClientIdSchemaType,
+  GeneratTokenSchemaType,
+} from "./oidc.schema";
 import { env } from "../../common/zod/env";
-import { ADMIN, USER } from "../../common/constants";
+import { USER } from "../../common/constants";
 
 const getServiceDiscoveryEndpoints = (req: Request, res: Response) => {
   res.json(SERVICE_DISCOVERY_ENDPOINTS);
@@ -34,8 +41,17 @@ const getKeys = async (req: Request, res: Response) => {
   res.json({ keys: [keys.toJSON()] });
 };
 
-const authorize = (req: Request, res: Response) => {
-  res.redirect(env.CLIENT_URL);
+const authorize = async (req: Request, res: Response) => {
+  const { client_id, code_challange, algorithm } =
+    req.query as AuthorizeSchemaType["query"];
+  const result = await validateAuthorizeRequest(client_id);
+  const params = new URLSearchParams({
+    client_id,
+    code_challange,
+    algorithm,
+  });
+
+  res.redirect(`${env.CLIENT_URL}?${params.toString()}`);
 };
 
 const registerClient = async (req: Request, res: Response) => {
@@ -99,9 +115,28 @@ const getTokenInfo = async (req: Request, res: Response) => {
 };
 
 const consent = async (req: Request, res: Response) => {
-  const { consent_token, client_id } = req.body;
-  const result = await processConsent(consent_token, client_id);
+  const { consent_token, client_id, code_challange, algorithm } =
+    req.body as ConsentSchemaType["body"];
+
+  const result = await processConsent(
+    consent_token,
+    client_id,
+    code_challange,
+    algorithm,
+  );
   ApiResponse.success(res, "Consent granted", result);
+};
+
+const generatToken = async (req: Request, res: Response) => {
+  const { client_id, code, algorithm, code_verifier } =
+    req.body as GeneratTokenSchemaType["body"];
+  const result = await generateUserToken({
+    client_id,
+    code,
+    algorithm,
+    code_verifier,
+  });
+  ApiResponse.success(res, "Token generated successfully", result);
 };
 
 const rotateSecret = async (req: Request, res: Response) => {
@@ -161,6 +196,7 @@ export {
   revokeToken,
   introspectToken,
   consent,
+  generatToken,
   rotateSecret,
   updateApplication,
 };
