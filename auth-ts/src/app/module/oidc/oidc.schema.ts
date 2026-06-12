@@ -73,7 +73,7 @@ const generatTokenSchema = z.object({
   body: z.object({
     code: z.string().trim().nonempty(),
     client_id: z.string().trim().nonempty(),
-    algorithm: z.enum(["SHA-256"]).default("SHA-256"),
+    algorithm: z.enum(["sha256"]).default("sha256"),
     code_verifier: z.string().trim().nonempty(),
   }),
 });

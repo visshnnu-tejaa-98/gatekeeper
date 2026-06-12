@@ -305,5 +305,3 @@ export {
   validateAuthorizeRequest,
   generateUserToken,
 };
-
-//  "https://npmjs.org?code=dfe7b3288817ccb6e44ceb653fac7c0022a2ea2df59c805fe161e083bf0bd85c"
