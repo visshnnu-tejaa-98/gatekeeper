@@ -9,25 +9,39 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as RegisterClientRouteImport } from './routes/register-client'
-import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AuthorizeRouteImport } from './routes/authorize'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardTokensRouteImport } from './routes/dashboard/tokens'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as DashboardSessionsRouteImport } from './routes/dashboard/sessions'
+import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
+import { Route as DashboardUsersIndexRouteImport } from './routes/dashboard/users/index'
+import { Route as DashboardApplicationsIndexRouteImport } from './routes/dashboard/applications/index'
+import { Route as DashboardApplicationsNewRouteImport } from './routes/dashboard/applications/new'
+import { Route as DashboardApplicationsIdRouteImport } from './routes/dashboard/applications/$id'
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegisterClientRoute = RegisterClientRouteImport.update({
-  id: '/register-client',
-  path: '/register-client',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -35,52 +49,245 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorizeRoute = AuthorizeRouteImport.update({
+  id: '/authorize',
+  path: '/authorize',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardTokensRoute = DashboardTokensRouteImport.update({
+  id: '/dashboard/tokens',
+  path: '/dashboard/tokens',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/dashboard/settings',
+  path: '/dashboard/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardSessionsRoute = DashboardSessionsRouteImport.update({
+  id: '/dashboard/sessions',
+  path: '/dashboard/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/dashboard/profile',
+  path: '/dashboard/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardUsersIndexRoute = DashboardUsersIndexRouteImport.update({
+  id: '/dashboard/users/',
+  path: '/dashboard/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardApplicationsIndexRoute =
+  DashboardApplicationsIndexRouteImport.update({
+    id: '/dashboard/applications/',
+    path: '/dashboard/applications/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardApplicationsNewRoute =
+  DashboardApplicationsNewRouteImport.update({
+    id: '/dashboard/applications/new',
+    path: '/dashboard/applications/new',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardApplicationsIdRoute = DashboardApplicationsIdRouteImport.update({
+  id: '/dashboard/applications/$id',
+  path: '/dashboard/applications/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/authorize': typeof AuthorizeRoute
+  '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/register-client': typeof RegisterClientRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/sessions': typeof DashboardSessionsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tokens': typeof DashboardTokensRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/applications/$id': typeof DashboardApplicationsIdRoute
+  '/dashboard/applications/new': typeof DashboardApplicationsNewRoute
+  '/dashboard/applications/': typeof DashboardApplicationsIndexRoute
+  '/dashboard/users/': typeof DashboardUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/authorize': typeof AuthorizeRoute
+  '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/register-client': typeof RegisterClientRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/sessions': typeof DashboardSessionsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tokens': typeof DashboardTokensRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/applications/$id': typeof DashboardApplicationsIdRoute
+  '/dashboard/applications/new': typeof DashboardApplicationsNewRoute
+  '/dashboard/applications': typeof DashboardApplicationsIndexRoute
+  '/dashboard/users': typeof DashboardUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/authorize': typeof AuthorizeRoute
+  '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/register-client': typeof RegisterClientRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/sessions': typeof DashboardSessionsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tokens': typeof DashboardTokensRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/applications/$id': typeof DashboardApplicationsIdRoute
+  '/dashboard/applications/new': typeof DashboardApplicationsNewRoute
+  '/dashboard/applications/': typeof DashboardApplicationsIndexRoute
+  '/dashboard/users/': typeof DashboardUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/profile' | '/register-client' | '/signup'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/authorize'
+    | '/contact'
+    | '/docs'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/verify-email'
+    | '/dashboard/profile'
+    | '/dashboard/sessions'
+    | '/dashboard/settings'
+    | '/dashboard/tokens'
+    | '/dashboard/'
+    | '/dashboard/applications/$id'
+    | '/dashboard/applications/new'
+    | '/dashboard/applications/'
+    | '/dashboard/users/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/profile' | '/register-client' | '/signup'
-  id: '__root__' | '/' | '/login' | '/profile' | '/register-client' | '/signup'
+  to:
+    | '/'
+    | '/about'
+    | '/authorize'
+    | '/contact'
+    | '/docs'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/verify-email'
+    | '/dashboard/profile'
+    | '/dashboard/sessions'
+    | '/dashboard/settings'
+    | '/dashboard/tokens'
+    | '/dashboard'
+    | '/dashboard/applications/$id'
+    | '/dashboard/applications/new'
+    | '/dashboard/applications'
+    | '/dashboard/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/authorize'
+    | '/contact'
+    | '/docs'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/verify-email'
+    | '/dashboard/profile'
+    | '/dashboard/sessions'
+    | '/dashboard/settings'
+    | '/dashboard/tokens'
+    | '/dashboard/'
+    | '/dashboard/applications/$id'
+    | '/dashboard/applications/new'
+    | '/dashboard/applications/'
+    | '/dashboard/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AuthorizeRoute: typeof AuthorizeRoute
+  ContactRoute: typeof ContactRoute
+  DocsRoute: typeof DocsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
-  ProfileRoute: typeof ProfileRoute
-  RegisterClientRoute: typeof RegisterClientRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardSessionsRoute: typeof DashboardSessionsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardTokensRoute: typeof DashboardTokensRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardApplicationsIdRoute: typeof DashboardApplicationsIdRoute
+  DashboardApplicationsNewRoute: typeof DashboardApplicationsNewRoute
+  DashboardApplicationsIndexRoute: typeof DashboardApplicationsIndexRoute
+  DashboardUsersIndexRoute: typeof DashboardUsersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -88,18 +295,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/register-client': {
-      id: '/register-client'
-      path: '/register-client'
-      fullPath: '/register-client'
-      preLoaderRoute: typeof RegisterClientRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -109,6 +309,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/authorize': {
+      id: '/authorize'
+      path: '/authorize'
+      fullPath: '/authorize'
+      preLoaderRoute: typeof AuthorizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -116,15 +351,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/tokens': {
+      id: '/dashboard/tokens'
+      path: '/dashboard/tokens'
+      fullPath: '/dashboard/tokens'
+      preLoaderRoute: typeof DashboardTokensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/dashboard/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/sessions': {
+      id: '/dashboard/sessions'
+      path: '/dashboard/sessions'
+      fullPath: '/dashboard/sessions'
+      preLoaderRoute: typeof DashboardSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/profile': {
+      id: '/dashboard/profile'
+      path: '/dashboard/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/users/': {
+      id: '/dashboard/users/'
+      path: '/dashboard/users'
+      fullPath: '/dashboard/users/'
+      preLoaderRoute: typeof DashboardUsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/applications/': {
+      id: '/dashboard/applications/'
+      path: '/dashboard/applications'
+      fullPath: '/dashboard/applications/'
+      preLoaderRoute: typeof DashboardApplicationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/applications/new': {
+      id: '/dashboard/applications/new'
+      path: '/dashboard/applications/new'
+      fullPath: '/dashboard/applications/new'
+      preLoaderRoute: typeof DashboardApplicationsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/applications/$id': {
+      id: '/dashboard/applications/$id'
+      path: '/dashboard/applications/$id'
+      fullPath: '/dashboard/applications/$id'
+      preLoaderRoute: typeof DashboardApplicationsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AuthorizeRoute: AuthorizeRoute,
+  ContactRoute: ContactRoute,
+  DocsRoute: DocsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
-  ProfileRoute: ProfileRoute,
-  RegisterClientRoute: RegisterClientRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
+  DashboardSessionsRoute: DashboardSessionsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardTokensRoute: DashboardTokensRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+  DashboardApplicationsIdRoute: DashboardApplicationsIdRoute,
+  DashboardApplicationsNewRoute: DashboardApplicationsNewRoute,
+  DashboardApplicationsIndexRoute: DashboardApplicationsIndexRoute,
+  DashboardUsersIndexRoute: DashboardUsersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

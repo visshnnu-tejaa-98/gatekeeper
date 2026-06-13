@@ -23,6 +23,11 @@ export const authService = {
     return data.data.user
   },
 
+  async logout() {
+    const { data } = await api.post('/api/auth/logout')
+    return data
+  },
+
   async registerClient({
     redirectUri,
     applicationDisplayName,
