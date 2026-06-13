@@ -29,7 +29,12 @@ const registerSchema = z.object({
 });
 
 const verifyEmailPayloadSchema = z.object({
-  email: z.email().nonempty().describe("email of the user who wants to verify"),
+  body: z.object({
+    email: z
+      .email()
+      .nonempty()
+      .describe("email of the user who wants to verify"),
+  }),
 });
 
 const verifyEmailSchema = z.object({

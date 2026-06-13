@@ -51,12 +51,16 @@ const authorize = async (req: Request, res: Response) => {
     algorithm,
   });
 
-  res.redirect(`${env.CLIENT_URL}?${params.toString()}`);
+  // Always land on the frontend's /login route so the user is prompted to
+  // authenticate before granting consent — never the marketing root.
+  const base = env.CLIENT_URL.replace(/\/$/, "");
+  res.redirect(`${base}/login?${params.toString()}`);
 };
 
 const registerClient = async (req: Request, res: Response) => {
   const { applicationDisplayName, applicationUrl, redirectUri } = req.body;
   const { sub, email_verified } = req.user;
+  console.log(req.user);
 
   if (!sub) throw new NotFoundError("User Not found");
   if (!email_verified)

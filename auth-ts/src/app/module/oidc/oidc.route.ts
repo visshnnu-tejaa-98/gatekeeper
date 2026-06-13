@@ -89,7 +89,7 @@ managementRouter.patch(
 
 managementRouter.post(
   "/register-client",
-  restrictTo(ADMIN),
+  restrictTo(ADMIN, SUPER_ADMIN),
   validate(registerNewClientDataSchema),
   registerClient,
 );

@@ -18,3 +18,5 @@ export const REFRESH_TOKEN = "refresh_token";
 
 export const TOKEN_TYPES = [ACCESS_TOKEN, REFRESH_TOKEN];
 export const FIXED_SCOPES = ["openid", "email", "profile"];
+
+export const ALLOWED_URLS = ["http://localhost:3000", "http://localhost:3001"];
