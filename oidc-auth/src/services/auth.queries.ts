@@ -104,8 +104,17 @@ export function useForgotPassword() {
 
 export function useResetPassword() {
   return useMutation({
-    mutationFn: async ({ token, password }: { token: string; password: string }) => {
-      const { data } = await api.post(`/api/auth/reset-password?token=${token}`, { password })
+    mutationFn: async ({
+      token,
+      password,
+    }: {
+      token: string
+      password: string
+    }) => {
+      const { data } = await api.post(
+        `/api/auth/reset-password?token=${token}`,
+        { password },
+      )
       return data.data
     },
   })

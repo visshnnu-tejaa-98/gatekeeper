@@ -12,7 +12,10 @@ import {
   verifyEmail,
   verifyUserEmailRequest,
 } from "./auth.service";
-import { UnauthorizedError } from "../../common/utils/api-error";
+import {
+  BadRequestError,
+  UnauthorizedError,
+} from "../../common/utils/api-error";
 
 const registerUser = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
@@ -29,7 +32,9 @@ const verifyEmailRequest = async (req: Request, res: Response) => {
 };
 
 const verifyUserEmail = async (req: Request, res: Response) => {
-  const { token } = req.body;
+  const token = req.query.token as string;
+  if (!token) throw new BadRequestError("Verify token is missing");
+
   const user = await verifyEmail({ token });
   ApiResponse.created(res, "User Email Verified Successfully", user);
 };

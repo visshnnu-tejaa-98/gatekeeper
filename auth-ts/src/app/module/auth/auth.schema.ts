@@ -38,7 +38,7 @@ const verifyEmailPayloadSchema = z.object({
 });
 
 const verifyEmailSchema = z.object({
-  body: z.object({
+  query: z.object({
     token: z
       .string()
       .trim()

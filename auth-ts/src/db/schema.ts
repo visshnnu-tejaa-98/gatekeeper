@@ -37,7 +37,7 @@ export const applicationsTable = pgTable("applications", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => usersTable.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
   url: text("url").unique(),
   redirectUri: text("redirect_uri"),
@@ -53,7 +53,7 @@ export const shortCodesTable = pgTable("shortcodes", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => usersTable.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   shortcode: varchar("short_code", { length: 6 }).notNull(),
   clientId: text("client_id").notNull(),
 });
@@ -67,7 +67,7 @@ export const authorizationCodesTable = pgTable("authorization_codes", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => usersTable.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   clientId: text("client_id").notNull(),
   code: varchar("code", { length: 128 }).notNull(),
   codeChallenge: varchar("code_challenge", { length: 128 }),

@@ -50,7 +50,7 @@ protectedRouter.get("/profile", getUserProfile);
 protectedRouter.post("/logout", logoutUser);
 protectedRouter.get(
   "/verify-email-request",
-  validate(verifyEmailPayloadSchema),
+  // validate(verifyEmailPayloadSchema),
   verifyEmailRequest,
 );
 protectedRouter.post(
