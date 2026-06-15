@@ -11,6 +11,7 @@ import { Input, Field } from '@/components/ui/Input'
 import { Dialog, DialogFooter } from '@/components/ui/Dialog'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { Pagination, usePagination } from '@/components/ui/Pagination'
 import {
   Users as UsersIcon,
   Search,
@@ -24,7 +25,12 @@ import {
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useUsers, useUpdateUser, useDeleteUser } from '@/services/users.queries'
+import {
+  useUsers,
+  useUpdateUser,
+  useDeleteUser,
+  useRevokeUserSessions,
+} from '@/services/users.queries'
 import { useProfile } from '@/services/auth.queries'
 import { getErrorMessage } from '@/services/api'
 import type { Role, UserRecord } from '@/services/types'
@@ -54,6 +60,12 @@ function Inner() {
   const [deleting, setDeleting] = React.useState<UserRecord | null>(null)
   const [revoking, setRevoking] = React.useState<UserRecord | null>(null)
 
+  // Track user IDs whose sessions were revoked in this browser session
+  // so we can render a "Revoked" pill next to them as confirmation.
+  const [revokedIds, setRevokedIds] = React.useState<Record<string, number>>({})
+  const markRevoked = (id: string) =>
+    setRevokedIds((prev) => ({ ...prev, [id]: Date.now() }))
+
   const q = search.trim().toLowerCase()
   const filtered = users
     .filter((u) => {
@@ -64,6 +76,14 @@ function Inner() {
       )
     })
     .filter((u) => roleFilter === 'all' || u.role === roleFilter)
+
+  const pagination = usePagination(filtered, 10)
+  const visible = pagination.paged
+
+  // Reset to page 1 whenever filter inputs change
+  React.useEffect(() => {
+    pagination.setPage(1)
+  }, [q, roleFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -97,8 +117,10 @@ function Inner() {
             </button>
           ))}
         </div>
-        <div className="ml-auto text-[12px] text-white/40">
-          {filtered.length} of {users.length}
+        <div className="ml-auto text-[12px] text-white/40 tabular-nums">
+          {filtered.length === users.length
+            ? `${users.length} ${users.length === 1 ? 'user' : 'users'}`
+            : `${filtered.length} of ${users.length}`}
         </div>
       </div>
 
@@ -156,7 +178,7 @@ function Inner() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((u, idx) => {
+              {visible.map((u, idx) => {
                 const isMe = u.id === me?.id
                 const isSuper = u.role === 'super_admin'
                 return (
@@ -169,9 +191,14 @@ function Inner() {
                       <div className="flex items-center gap-3">
                         <Avatar src={u.avatar} name={u.name} size="md" />
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-[13px] font-medium text-white truncate">{u.name}</p>
                             {isMe && <Badge tone="purple" size="sm">you</Badge>}
+                            {revokedIds[u.id] && (
+                              <Badge tone="orange" size="sm" className="gap-1">
+                                <LogOut className="size-2.5" /> sessions revoked
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-[11.5px] text-white/40 truncate">{u.email}</p>
                         </div>
@@ -234,28 +261,44 @@ function Inner() {
               })}
             </tbody>
           </table>
+          <Pagination
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={filtered.length}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
         </Card>
       )}
 
       {editing && <EditUserDialog user={editing} onClose={() => setEditing(null)} canChangeRole={me?.role === 'super_admin'} />}
       {deleting && <DeleteUserDialog user={deleting} onClose={() => setDeleting(null)} />}
-      {revoking && <RevokeAccessDialog user={revoking} onClose={() => setRevoking(null)} />}
+      {revoking && (
+        <RevokeAccessDialog
+          user={revoking}
+          onClose={() => setRevoking(null)}
+          onRevoked={(id) => markRevoked(id)}
+        />
+      )}
     </>
   )
 }
 
-function RevokeAccessDialog({ user, onClose }: { user: UserRecord; onClose: () => void }) {
-  const update = useUpdateUser()
-  // Revoke = invalidate refresh token by changing a low-risk field that triggers
-  // updateUserWithRefreshToken to clear server-side. As a best-effort signal we
-  // patch the user with their current email to bump updatedAt — this doesn't
-  // null the refresh_token but signals intent. Real backend would expose a
-  // dedicated /users/:id/revoke-sessions endpoint. For now we surface intent
-  // and inform the admin to delete + recreate or contact the user.
+function RevokeAccessDialog({
+  user,
+  onClose,
+  onRevoked,
+}: {
+  user: UserRecord
+  onClose: () => void
+  onRevoked: (id: string) => void
+}) {
+  const revoke = useRevokeUserSessions()
   const handle = async () => {
     try {
-      await update.mutateAsync({ id: user.id, name: user.name })
-      toast.success(`Active sessions invalidated for ${user.name}`)
+      await revoke.mutateAsync(user.id)
+      onRevoked(user.id)
+      toast.success(`Active sessions revoked for ${user.name}`)
       onClose()
     } catch (e) {
       toast.error(getErrorMessage(e))
@@ -274,14 +317,14 @@ function RevokeAccessDialog({ user, onClose }: { user: UserRecord; onClose: () =
       <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.05] p-3 flex items-start gap-2.5">
         <AlertTriangle className="size-4 text-amber-400 shrink-0 mt-0.5" />
         <ul className="text-[12.5px] text-white/65 space-y-0.5">
-          <li>• Current refresh tokens will be invalidated</li>
-          <li>• Access tokens expire on their normal schedule</li>
-          <li>• The user account remains active</li>
+          <li>• Refresh tokens are immediately invalidated</li>
+          <li>• In-flight access tokens expire on their normal schedule</li>
+          <li>• The user account remains active and unchanged</li>
         </ul>
       </div>
       <DialogFooter>
         <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
-        <Button variant="primary" size="sm" onClick={handle} loading={update.isPending} className="gap-1">
+        <Button variant="primary" size="sm" onClick={handle} loading={revoke.isPending} className="gap-1">
           <LogOut className="size-3.5" /> Revoke sessions
         </Button>
       </DialogFooter>

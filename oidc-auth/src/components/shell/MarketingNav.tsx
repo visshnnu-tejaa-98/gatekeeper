@@ -1,7 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { Logo } from '@/components/ui/Logo'
 import { Button } from '@/components/ui/Button'
-import { Github, ArrowUpRight } from 'lucide-react'
+import { Github, ArrowUpRight, LayoutDashboard } from 'lucide-react'
+import { useAuthState } from '@/lib/useAuthState'
 
 const links = [
   { to: '/', label: 'Product' },
@@ -11,6 +12,8 @@ const links = [
 ]
 
 export function MarketingNav() {
+  const loggedIn = useAuthState()
+
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#08080c]/70 border-b border-white/6">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-6">
@@ -39,14 +42,26 @@ export function MarketingNav() {
             <Github className="size-3.5" />
             <span className="hidden sm:inline">GitHub</span>
           </Button>
-          <Link to="/login">
-            <Button variant="ghost" size="sm">Sign in</Button>
-          </Link>
-          <Link to="/signup">
-            <Button variant="primary" size="sm" className="gap-1">
-              Get started <ArrowUpRight className="size-3.5" />
-            </Button>
-          </Link>
+          {loggedIn ? (
+            <Link to="/dashboard">
+              <Button variant="primary" size="sm" className="gap-1.5">
+                <LayoutDashboard className="size-3.5" />
+                <span>Dashboard</span>
+                <ArrowUpRight className="size-3.5" />
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Sign in</Button>
+              </Link>
+              <Link to="/signup">
+                <Button variant="primary" size="sm" className="gap-1">
+                  Get started <ArrowUpRight className="size-3.5" />
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

@@ -20,6 +20,10 @@ import {
   ExternalLink,
   AlertTriangle,
   ShieldAlert,
+  Pencil,
+  Lock,
+  X,
+  CheckCircle2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -51,6 +55,12 @@ function Inner() {
   const [newSecret, setNewSecret] = React.useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [rotateOpen, setRotateOpen] = React.useState(false)
+  const [editMode, setEditMode] = React.useState(false)
+  const [saveConfirmOpen, setSaveConfirmOpen] = React.useState(false)
+  const [pendingValues, setPendingValues] = React.useState<{
+    name: string
+    redirectUri: string
+  } | null>(null)
 
   const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<{
     name: string
@@ -61,20 +71,34 @@ function Inner() {
     if (app) reset({ name: app.name, redirectUri: app.redirectUri })
   }, [app, reset])
 
-  const onUpdate: SubmitHandler<{ name: string; redirectUri: string }> = async (values) => {
+  const onUpdate: SubmitHandler<{ name: string; redirectUri: string }> = (values) => {
+    if (values.name === app?.name && values.redirectUri === app?.redirectUri) {
+      toast.error('No changes to save')
+      return
+    }
+    setPendingValues(values)
+    setSaveConfirmOpen(true)
+  }
+
+  const performUpdate = async () => {
+    if (!pendingValues) return
     try {
       const payload: any = { id }
-      if (values.name !== app?.name) payload.name = values.name
-      if (values.redirectUri !== app?.redirectUri) payload.redirectUri = values.redirectUri
-      if (Object.keys(payload).length === 1) {
-        toast.error('No changes to save')
-        return
-      }
+      if (pendingValues.name !== app?.name) payload.name = pendingValues.name
+      if (pendingValues.redirectUri !== app?.redirectUri) payload.redirectUri = pendingValues.redirectUri
       await update.mutateAsync(payload)
       toast.success('Application updated')
+      setSaveConfirmOpen(false)
+      setPendingValues(null)
+      setEditMode(false)
     } catch (e) {
       toast.error(getErrorMessage(e))
     }
+  }
+
+  const cancelEdit = () => {
+    if (app) reset({ name: app.name, redirectUri: app.redirectUri })
+    setEditMode(false)
   }
 
   const handleRotate = async () => {
@@ -198,15 +222,55 @@ function Inner() {
           <Card>
             <CardHeader>
               <div>
-                <CardTitle>Edit application</CardTitle>
-                <CardDescription>Update the display name or redirect URI</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  Edit application
+                  {!editMode ? (
+                    <Badge tone="neutral" size="sm" className="gap-1">
+                      <Lock className="size-2.5" /> Read-only
+                    </Badge>
+                  ) : (
+                    <Badge tone="orange" size="sm" className="gap-1 anim-pulse">
+                      <Pencil className="size-2.5" /> Editing
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {editMode
+                    ? 'Make your changes — you\'ll be asked to confirm before saving'
+                    : 'Click edit to unlock the fields'}
+                </CardDescription>
               </div>
+              {!editMode ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setEditMode(true)}
+                  className="gap-1.5"
+                >
+                  <Pencil className="size-3.5" /> Edit
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={cancelEdit}
+                  className="gap-1"
+                  disabled={update.isPending}
+                >
+                  <X className="size-3.5" /> Cancel
+                </Button>
+              )}
             </CardHeader>
             <CardBody>
-              <form onSubmit={handleSubmit(onUpdate)} className="flex flex-col gap-4">
+              <form
+                onSubmit={handleSubmit(onUpdate)}
+                className="flex flex-col gap-4"
+              >
                 <Field label="Application name" error={errors.name?.message}>
                   <Input
                     icon={AppWindow}
+                    disabled={!editMode}
+                    className={!editMode ? 'opacity-70 cursor-not-allowed' : ''}
                     {...register('name', { required: 'Required' })}
                     error={!!errors.name}
                   />
@@ -215,6 +279,8 @@ function Inner() {
                   <Input
                     icon={Globe}
                     type="url"
+                    disabled={!editMode}
+                    className={!editMode ? 'opacity-70 cursor-not-allowed' : ''}
                     {...register('redirectUri', { required: 'Required' })}
                     error={!!errors.redirectUri}
                   />
@@ -223,14 +289,17 @@ function Inner() {
             </CardBody>
             <CardFooter>
               <p className="text-[12px] text-white/40">
-                {isDirty ? 'Unsaved changes' : 'No changes'}
+                {editMode
+                  ? isDirty
+                    ? 'Unsaved changes'
+                    : 'No changes yet'
+                  : 'Fields are locked'}
               </p>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={handleSubmit(onUpdate)}
-                loading={update.isPending}
-                disabled={!isDirty}
+                disabled={!editMode || !isDirty}
                 className="gap-1"
               >
                 Save changes <ArrowRight className="size-3.5" />
@@ -281,6 +350,58 @@ function Inner() {
         </div>
       </div>
 
+      {/* Save changes confirm dialog */}
+      <Dialog
+        open={saveConfirmOpen}
+        onOpenChange={(v) => !v && !update.isPending && setSaveConfirmOpen(false)}
+        title="Save changes?"
+        description="Review the new values before they go live."
+      >
+        {pendingValues && app && (
+          <div className="space-y-3 mb-4">
+            <DiffRow
+              label="Name"
+              oldValue={app.name}
+              newValue={pendingValues.name}
+              changed={pendingValues.name !== app.name}
+            />
+            <DiffRow
+              label="Redirect URI"
+              oldValue={app.redirectUri}
+              newValue={pendingValues.redirectUri}
+              changed={pendingValues.redirectUri !== app.redirectUri}
+              mono
+            />
+          </div>
+        )}
+        <div className="rounded-lg border border-violet-500/20 bg-violet-500/[0.05] p-3 flex items-start gap-2.5">
+          <ShieldAlert className="size-4 text-violet-300 shrink-0 mt-0.5" />
+          <p className="text-[12.5px] text-white/65">
+            Changes take effect immediately for new requests. Existing tokens continue to work
+            until they expire normally.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSaveConfirmOpen(false)}
+            disabled={update.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={performUpdate}
+            loading={update.isPending}
+            className="gap-1"
+          >
+            <CheckCircle2 className="size-3.5" /> Confirm & save
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
       {/* Rotate confirm dialog */}
       <Dialog
         open={rotateOpen}
@@ -329,5 +450,50 @@ function Inner() {
         </DialogFooter>
       </Dialog>
     </>
+  )
+}
+
+function DiffRow({
+  label,
+  oldValue,
+  newValue,
+  changed,
+  mono,
+}: {
+  label: string
+  oldValue: string
+  newValue: string
+  changed: boolean
+  mono?: boolean
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[10.5px] uppercase tracking-wider font-semibold text-white/35">{label}</p>
+        {changed && <Badge tone="orange" size="sm">changed</Badge>}
+      </div>
+      <div className="space-y-1">
+        <div
+          className={`flex items-start gap-2 px-3 py-1.5 rounded-md border text-[12.5px] break-all ${
+            changed
+              ? 'border-red-500/15 bg-red-500/[0.04] text-white/45 line-through'
+              : 'border-white/8 bg-white/[0.02] text-white/55'
+          } ${mono ? 'font-mono text-[12px]' : ''}`}
+        >
+          <span className="text-white/30 shrink-0 select-none">−</span>
+          <span className="flex-1 min-w-0">{oldValue}</span>
+        </div>
+        {changed && (
+          <div
+            className={`flex items-start gap-2 px-3 py-1.5 rounded-md border text-[12.5px] border-emerald-500/20 bg-emerald-500/[0.05] text-white break-all ${
+              mono ? 'font-mono text-[12px]' : ''
+            }`}
+          >
+            <span className="text-emerald-400 shrink-0 select-none">+</span>
+            <span className="flex-1 min-w-0">{newValue}</span>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

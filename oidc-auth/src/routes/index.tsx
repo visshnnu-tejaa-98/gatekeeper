@@ -16,8 +16,10 @@ import {
   Database,
   Terminal,
   CheckCircle2,
+  LayoutDashboard,
   type LucideIcon,
 } from 'lucide-react'
+import { useAuthState } from '@/lib/useAuthState'
 
 export const Route = createFileRoute('/')({ component: LandingPage })
 
@@ -35,6 +37,7 @@ function LandingPage() {
 }
 
 function Hero() {
+  const loggedIn = useAuthState()
   return (
     <section className="relative pt-20 pb-24 px-6">
       <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -58,11 +61,19 @@ function Hero() {
         </p>
 
         <div className="anim-up-3 flex items-center justify-center gap-3 flex-wrap mb-12">
-          <Link to="/signup">
-            <Button variant="primary" size="lg" className="gap-1.5 px-5">
-              Start free <ArrowUpRight className="size-4" />
-            </Button>
-          </Link>
+          {loggedIn ? (
+            <Link to="/dashboard">
+              <Button variant="primary" size="lg" className="gap-1.5 px-5">
+                <LayoutDashboard className="size-4" /> Go to dashboard <ArrowUpRight className="size-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/signup">
+              <Button variant="primary" size="lg" className="gap-1.5 px-5">
+                Start free <ArrowUpRight className="size-4" />
+              </Button>
+            </Link>
+          )}
           <Link to="/docs">
             <Button variant="outline" size="lg" className="gap-1.5 px-5">
               <Terminal className="size-4" /> View docs
@@ -328,23 +339,34 @@ function Standards() {
 }
 
 function CTA() {
+  const loggedIn = useAuthState()
   return (
     <section className="py-24 px-6 relative">
       <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-64 bg-gradient-to-r from-violet-500/10 via-blue-500/5 to-transparent blur-3xl -z-10" />
       <div className="max-w-4xl mx-auto rounded-2xl border border-white/8 bg-gradient-to-br from-violet-500/8 to-transparent p-10 md:p-14 text-center relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-violet-500/60 before:to-transparent">
         <Logo size={36} showText={false} className="mx-auto mb-4" glow />
         <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-white mb-3">
-          Stop renting your auth.
+          {loggedIn ? 'Welcome back, builder.' : 'Stop renting your auth.'}
         </h2>
         <p className="text-[15px] text-white/55 mb-7 max-w-xl mx-auto">
-          Sign up free. Self-host in minutes. Production-ready from day one.
+          {loggedIn
+            ? 'Jump back into your workspace, or browse the docs to find what you need next.'
+            : 'Sign up free. Self-host in minutes. Production-ready from day one.'}
         </p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
-          <Link to="/signup">
-            <Button variant="primary" size="lg" className="gap-1.5 px-5">
-              Create your account <ArrowUpRight className="size-4" />
-            </Button>
-          </Link>
+          {loggedIn ? (
+            <Link to="/dashboard">
+              <Button variant="primary" size="lg" className="gap-1.5 px-5">
+                <LayoutDashboard className="size-4" /> Open dashboard <ArrowUpRight className="size-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/signup">
+              <Button variant="primary" size="lg" className="gap-1.5 px-5">
+                Create your account <ArrowUpRight className="size-4" />
+              </Button>
+            </Link>
+          )}
           <Link to="/docs">
             <Button variant="outline" size="lg" className="gap-1.5">
               <Globe className="size-4" /> Self-host guide

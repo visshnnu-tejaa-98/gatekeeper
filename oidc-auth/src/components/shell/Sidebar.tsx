@@ -6,6 +6,7 @@ import {
   User,
   Settings,
   KeyRound,
+  Monitor,
   ChevronsUpDown,
   LogOut,
   Sparkles,
@@ -30,6 +31,7 @@ const PRIMARY: NavItem[] = [
   { icon: LayoutDashboard, label: 'Overview', to: '/dashboard' },
   { icon: AppWindow, label: 'Applications', to: '/dashboard/applications' },
   { icon: Users, label: 'Users', to: '/dashboard/users', superAdminOnly: true },
+  { icon: Monitor, label: 'Sessions', to: '/dashboard/sessions', badge: 'Soon' },
   { icon: KeyRound, label: 'Token Lab', to: '/dashboard/tokens' },
 ]
 

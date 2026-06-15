@@ -56,3 +56,17 @@ export function useDeleteUser() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   })
 }
+
+export function useRevokeUserSessions() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/api/users/${id}/revoke-sessions`)
+      return data.data
+    },
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ['users'] })
+      qc.invalidateQueries({ queryKey: ['users', id] })
+    },
+  })
+}
