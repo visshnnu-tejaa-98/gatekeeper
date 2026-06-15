@@ -6,6 +6,7 @@ import {
   getUserDetails,
   updateUser,
   removeUser,
+  revokeSessions,
 } from "./users.service";
 import { UpdateUserSchemaType } from "./users.schema";
 
@@ -52,4 +53,18 @@ const deleteUser = async (req: Request, res: Response) => {
   ApiResponse.success(res, `User ${targetUserId} deleted successfully`);
 };
 
-export { getUsers, getUser, updateUserProfile, deleteUser };
+const revokeUserSessions = async (req: Request, res: Response) => {
+  const { sub: requesterId, role: requesterRole } = req.user;
+  if (!requesterId) throw new UnauthorizedError("Invalid session");
+  const targetUserId = req.params.id as string;
+  const result = await revokeSessions(targetUserId, requesterId, requesterRole);
+  ApiResponse.success(res, "User sessions revoked", result);
+};
+
+export {
+  getUsers,
+  getUser,
+  updateUserProfile,
+  deleteUser,
+  revokeUserSessions,
+};

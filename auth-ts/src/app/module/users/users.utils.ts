@@ -1,6 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray, or } from "drizzle-orm";
 import db from "../../../db";
-import { usersTable } from "../../../db/schema";
+import {
+  usersTable,
+  applicationsTable,
+  shortCodesTable,
+  authorizationCodesTable,
+} from "../../../db/schema";
 import { NotFoundError } from "../../common/utils/api-error";
 import { ALLOWED_ROLES } from "../../common/constants";
 
@@ -45,14 +50,74 @@ const updateUserById = async (
   return updated[0]!;
 };
 
+/**
+ * Delete a user along with every record that references them via FK:
+ *   - authorization_codes by userId OR by clientId of their applications
+ *   - shortcodes by userId OR by clientId of their applications
+ *   - applications they own
+ *   - the user row itself
+ * Runs as a single transaction so a failure rolls everything back.
+ */
 const deleteUserById = async (userId: string) => {
-  const deleted = await db
-    .delete(usersTable)
-    .where(eq(usersTable.id, userId))
-    .returning({ id: usersTable.id });
+  return await db.transaction(async (tx) => {
+    const userApps = await tx
+      .select({ clientId: applicationsTable.clientId })
+      .from(applicationsTable)
+      .where(eq(applicationsTable.userId, userId));
 
-  if (deleted.length === 0) throw new NotFoundError("User not found");
-  return deleted[0]!;
+    const clientIds = userApps.map((a) => a.clientId);
+
+    const authCodeFilter =
+      clientIds.length > 0
+        ? or(
+            eq(authorizationCodesTable.userId, userId),
+            inArray(authorizationCodesTable.clientId, clientIds),
+          )
+        : eq(authorizationCodesTable.userId, userId);
+    await tx.delete(authorizationCodesTable).where(authCodeFilter);
+
+    const shortCodeFilter =
+      clientIds.length > 0
+        ? or(
+            eq(shortCodesTable.userId, userId),
+            inArray(shortCodesTable.clientId, clientIds),
+          )
+        : eq(shortCodesTable.userId, userId);
+    await tx.delete(shortCodesTable).where(shortCodeFilter);
+
+    await tx
+      .delete(applicationsTable)
+      .where(eq(applicationsTable.userId, userId));
+
+    const deleted = await tx
+      .delete(usersTable)
+      .where(eq(usersTable.id, userId))
+      .returning({ id: usersTable.id });
+
+    if (deleted.length === 0) throw new NotFoundError("User not found");
+    return deleted[0]!;
+  });
 };
 
-export { getAllUsers, getUserById, updateUserById, deleteUserById };
+/**
+ * Invalidate every refresh token for a user. The user will need to sign in
+ * again on every device. Access tokens already in flight expire normally.
+ */
+const revokeUserSessions = async (userId: string) => {
+  const updated = await db
+    .update(usersTable)
+    .set({ refreshToken: null, updatedAt: new Date() })
+    .where(eq(usersTable.id, userId))
+    .returning({ id: usersTable.id, updatedAt: usersTable.updatedAt });
+
+  if (updated.length === 0) throw new NotFoundError("User not found");
+  return updated[0]!;
+};
+
+export {
+  getAllUsers,
+  getUserById,
+  updateUserById,
+  deleteUserById,
+  revokeUserSessions,
+};

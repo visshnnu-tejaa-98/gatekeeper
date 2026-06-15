@@ -1,6 +1,12 @@
 import { UnauthorizedError } from "../../common/utils/api-error";
 import { SUPER_ADMIN } from "../../common/constants";
-import { getAllUsers, getUserById, updateUserById, deleteUserById } from "./users.utils";
+import {
+  getAllUsers,
+  getUserById,
+  updateUserById,
+  deleteUserById,
+  revokeUserSessions as revokeUserSessionsByUserId,
+} from "./users.utils";
 import { UpdateUserByIdProps } from "./users.types";
 
 const listAllUsers = async () => {
@@ -33,4 +39,16 @@ const removeUser = async (userId: string) => {
   return await deleteUserById(userId);
 };
 
-export { listAllUsers, getUserDetails, updateUser, removeUser };
+const revokeSessions = async (
+  targetUserId: string,
+  requesterId: string,
+  requesterRole: string,
+) => {
+  if (requesterRole !== SUPER_ADMIN && targetUserId !== requesterId)
+    throw new UnauthorizedError(
+      "You can only revoke sessions for your own account",
+    );
+  return await revokeUserSessionsByUserId(targetUserId);
+};
+
+export { listAllUsers, getUserDetails, updateUser, removeUser, revokeSessions };
