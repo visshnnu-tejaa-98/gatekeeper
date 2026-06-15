@@ -139,7 +139,29 @@ const verifyEmail = async ({ token }: { token: string }) => {
     throw new BadRequestError("Token Expired or Invalid token");
   const updatedUser = await updateUserAfterEmailVerification(decoded.email);
 
-  return updatedUser;
+  // Re-issue tokens so the JWT now carries email_verified: true. Without this
+  // the user keeps their old token (email_verified: false) until it expires.
+  const claims: AccessTokenClaims = {
+    iss: env.ISSUER_URL || "http://localhost:9000",
+    sub: user.id.toString(),
+    email: user.email,
+    email_verified: true,
+    name: user.name,
+    picture: user.avatar ?? "",
+    role: user.role,
+  };
+  const accessToken = generateAccessToken(claims);
+  const refreshToken = generateRefeshToken({ id: user.id, role: user.role });
+  const hashedRefreshToken = hashToken(refreshToken);
+  await updateUserWithRefreshToken(hashedRefreshToken, user.email);
+
+  return {
+    id: updatedUser.id,
+    email: updatedUser.email,
+    isVerified: updatedUser.isVerified,
+    accessToken,
+    refreshToken,
+  };
 };
 
 const login = async ({

@@ -28,7 +28,7 @@ const connectToNodemailer = async () => {
 };
 
 const sendVerificationEmail = async (to: string, token: string) => {
-  const verificationLink = `${env.BASE_URL}/api/auth/verify?token=${token}`;
+  const verificationLink = `${env.CLIENT_URL}/verify-email?token=${token}`;
   try {
     await transporter.sendMail({
       from: user,

@@ -17,7 +17,7 @@ export function MarketingNav() {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#08080c]/70 border-b border-white/6">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-6">
-        <Link to="/" className="flex items-center gap-6">
+        <Link to="/" className="flex items-center gap-6" title="Home">
           <Logo size={28} />
           <span className="hidden md:inline-block text-[11px] font-medium px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/10 text-white/55 leading-none">
             v1.0 beta

@@ -23,13 +23,19 @@ function LoginPage() {
     defaultValues: { email: '', password: '' },
   })
 
+  const search =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams()
+  const clientId = search.get('client_id') || undefined
+
   const onSubmit: SubmitHandler<LoginForm> = async (values) => {
     try {
-      const data = await login.mutateAsync(values)
+      const data = await login.mutateAsync({ ...values, clientId })
       if ('consentToken' in data) {
         sessionStorage.setItem('consent_token', data.consentToken)
         toast.success(`Continue to ${data.applicationName}`)
-        navigate({ to: '/authorize' })
+        window.location.href = `/authorize?${search.toString()}`
       } else {
         toast.success('Welcome back')
         navigate({ to: '/dashboard' })
@@ -40,8 +46,8 @@ function LoginPage() {
   }
 
   React.useEffect(() => {
-    if (tokenStore.getAccess()) navigate({ to: '/dashboard' })
-  }, [navigate])
+    if (tokenStore.getAccess() && !clientId) navigate({ to: '/dashboard' })
+  }, [navigate, clientId])
 
   return (
     <AuthLayout

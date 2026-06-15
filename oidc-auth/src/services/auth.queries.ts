@@ -26,8 +26,14 @@ export function useProfile() {
 // ─── Register ───
 export function useRegister() {
   return useMutation({
-    mutationFn: async (body: RegisterRequest): Promise<RegisterResponse> => {
-      const { data } = await api.post('/api/auth/register', body)
+    mutationFn: async ({
+      clientId,
+      ...body
+    }: RegisterRequest): Promise<RegisterResponse> => {
+      const url = clientId
+        ? `/api/auth/register?client_id=${encodeURIComponent(clientId)}`
+        : '/api/auth/register'
+      const { data } = await api.post(url, body)
       if (data.data?.accessToken) {
         tokenStore.set({
           accessToken: data.data.accessToken,
@@ -43,8 +49,14 @@ export function useRegister() {
 // ─── Login ───
 export function useLogin() {
   return useMutation({
-    mutationFn: async (body: LoginRequest): Promise<LoginResponse> => {
-      const { data } = await api.post('/api/auth/login', body)
+    mutationFn: async ({
+      clientId,
+      ...body
+    }: LoginRequest): Promise<LoginResponse> => {
+      const url = clientId
+        ? `/api/auth/login?client_id=${encodeURIComponent(clientId)}`
+        : '/api/auth/login'
+      const { data } = await api.post(url, body)
       if (data.data?.accessToken) {
         tokenStore.set({
           accessToken: data.data.accessToken,
@@ -84,10 +96,23 @@ export function useRequestVerifyEmail() {
 }
 
 export function useVerifyEmail() {
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: async (token: string) => {
       const { data } = await api.post('/api/auth/verify', { token })
+      // Backend now re-issues tokens after verify so the JWT carries
+      // email_verified: true. Persist them so the client picks up immediately.
+      if (data.data?.accessToken) {
+        tokenStore.set({
+          accessToken: data.data.accessToken,
+          refreshToken: data.data.refreshToken || '',
+          id: data.data.id || tokenStore.getUser() || '',
+        })
+      }
       return data.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profile'] })
     },
   })
 }

@@ -23,7 +23,12 @@ function VerifyEmailPage() {
     }
     verify
       .mutateAsync(token)
-      .then(() => setStatus('ok'))
+      .then(() => {
+        setStatus('ok')
+        // Auto-redirect after the user has had time to register the success.
+        const t = setTimeout(() => navigate({ to: '/dashboard' }), 2200)
+        return () => clearTimeout(t)
+      })
       .catch((e) => {
         setStatus('fail')
         setError(getErrorMessage(e))
@@ -50,11 +55,14 @@ function VerifyEmailPage() {
               <CheckCircle2 className="size-5 text-emerald-400" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-white mb-1">Email verified</h1>
-            <p className="text-[13.5px] text-white/45 mb-6">
+            <p className="text-[13.5px] text-white/45 mb-2">
               Your email is confirmed. You now have full access to register applications and more.
             </p>
+            <p className="text-[11.5px] text-white/30 mb-5">
+              Your session token has been refreshed · Redirecting…
+            </p>
             <Button variant="primary" block onClick={() => navigate({ to: '/dashboard' })}>
-              Continue to dashboard <ArrowUpRight className="size-4" />
+              Go to dashboard now <ArrowUpRight className="size-4" />
             </Button>
           </>
         )}

@@ -32,7 +32,7 @@ const verifyEmailRequest = async (req: Request, res: Response) => {
 };
 
 const verifyUserEmail = async (req: Request, res: Response) => {
-  const token = req.query.token as string;
+  const token = req.body.token as string;
   if (!token) throw new BadRequestError("Verify token is missing");
 
   const user = await verifyEmail({ token });

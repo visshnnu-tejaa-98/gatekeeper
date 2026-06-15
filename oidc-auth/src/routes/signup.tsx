@@ -23,9 +23,15 @@ function SignupPage() {
   })
   const pwd = watch('password')
 
+  const search =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams()
+  const clientId = search.get('client_id') || undefined
+
   React.useEffect(() => {
-    if (tokenStore.getAccess()) navigate({ to: '/dashboard' })
-  }, [navigate])
+    if (tokenStore.getAccess() && !clientId) navigate({ to: '/dashboard' })
+  }, [navigate, clientId])
 
   const onSubmit: SubmitHandler<SignupForm> = async (values) => {
     try {
@@ -33,10 +39,11 @@ function SignupPage() {
         name: values.name,
         email: values.email,
         password: values.password,
+        clientId,
       })
       if ('consentToken' in data) {
         sessionStorage.setItem('consent_token', data.consentToken)
-        navigate({ to: '/authorize' })
+        window.location.href = `/authorize?${search.toString()}`
       } else {
         toast.success('Account created — verify your email')
         navigate({ to: '/dashboard' })

@@ -55,7 +55,11 @@ export function Sidebar() {
     <aside className="hidden lg:flex shrink-0 w-[220px] flex-col h-screen sticky top-0 border-r border-white/6 bg-[#0a0a10]">
       {/* Workspace switcher */}
       <div className="px-3 pt-3 pb-2">
-        <button className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-white/[0.04] group transition-colors">
+        <Link
+          to="/"
+          className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-white/[0.04] group transition-colors"
+          title="Go to home"
+        >
           <Logo size={22} showText={false} />
           <div className="flex-1 text-left min-w-0">
             <p className="text-[12.5px] font-semibold text-white truncate">
@@ -64,7 +68,7 @@ export function Sidebar() {
             <p className="text-[10.5px] text-white/45 truncate">Personal workspace</p>
           </div>
           <ChevronsUpDown className="size-3.5 text-white/35 group-hover:text-white/60 shrink-0" />
-        </button>
+        </Link>
       </div>
 
       <div className="h-px bg-white/6 mx-3" />
