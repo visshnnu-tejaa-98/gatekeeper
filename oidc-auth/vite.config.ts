@@ -20,7 +20,12 @@ const config = defineConfig({
   plugins: [
     devtools(),
     tailwindcss(),
-    tanstackStart({ spa: { enabled: true } }),
+    tanstackStart({
+      spa: {
+        enabled: true,
+        prerender: { outputPath: '/' },
+      },
+    }),
     viteReact(),
   ],
   server: {
