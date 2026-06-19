@@ -11,11 +11,11 @@ const srcDir = fileURLToPath(new URL('./src', import.meta.url))
 
 const config = defineConfig({
   resolve: {
-    tsconfigPaths: true,
     alias: {
       '@': srcDir,
       '#': srcDir,
     },
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
   },
   plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
   server: {
