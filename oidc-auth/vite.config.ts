@@ -17,7 +17,12 @@ const config = defineConfig({
     },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
   },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  plugins: [
+    devtools(),
+    tailwindcss(),
+    tanstackStart({ spa: { enabled: true } }),
+    viteReact(),
+  ],
   server: {
     proxy: {
       '/api': {
