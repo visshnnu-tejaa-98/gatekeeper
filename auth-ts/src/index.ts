@@ -8,9 +8,9 @@ const main = async () => {
     await cleanExpiredAuthCodes();
 
     const server = createServer(createExpressApp());
-    const PORT = process.env.PORT;
+    const PORT = Number(process.env.PORT) || 9000;
     const NODE_ENV = process.env.NODE_ENV;
-    server.listen(9000, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 server is up and running ${PORT} in ${NODE_ENV} mode.`);
     });
   } catch (error) {

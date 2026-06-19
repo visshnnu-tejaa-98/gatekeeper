@@ -44,6 +44,8 @@ const envSchema = z.object({
   ISSUER_URL: z.string(),
   IMAGEKIT_PRIVATE_KEY: z.string(),
   IMAGEKIT_PUBLIC_KEY: z.string(),
+  PUBLIC_KEY: z.string(),
+  PRIVATE_KEY: z.string(),
 });
 
 const envResult = envSchema.safeParse(process.env);
