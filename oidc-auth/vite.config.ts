@@ -17,9 +17,6 @@ const config = defineConfig({
     },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
   },
-  build: {
-    outDir: 'public',
-  },
   plugins: [
     devtools(),
     tailwindcss(),
