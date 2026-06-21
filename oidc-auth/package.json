@@ -6,10 +6,10 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vinxi dev --port 3000",
     "generate-routes": "tsr generate",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "vinxi build",
+    "preview": "vinxi preview",
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier --write . && eslint --fix",
