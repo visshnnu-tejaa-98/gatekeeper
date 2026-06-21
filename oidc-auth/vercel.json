@@ -1,13 +1,12 @@
 {
-  "outputDirectory": ".output/public",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://ilogin.up.railway.app"
+      "destination": "https://ilogin.up.railway.app/api/:path*"
     },
     {
       "source": "/o/:path*",
-      "destination": "https://ilogin.up.railway.app"
+      "destination": "https://ilogin.up.railway.app/o/:path*"
     }
   ]
 }
