@@ -1,4 +1,4 @@
 {
-  "outputDirectory": "dist",
+  "outputdirectory": "dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
