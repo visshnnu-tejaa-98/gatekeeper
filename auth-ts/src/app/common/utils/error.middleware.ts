@@ -11,13 +11,14 @@ export const errorMiddleWare = (
   const errorCode = err.errorCode || "INTERNAL_SERVER_ERROR";
 
   const isProduction = process.env.NODE_ENV === "production";
+  const isServerError = statusCode >= 500;
 
   const response = {
-    message: isProduction ? "Internal Server Error" : message,
+    message: isProduction && isServerError ? "Internal Server Error" : message,
     details: {
       code: errorCode,
       error:
-        isProduction ?
+        isProduction && isServerError ?
           "An unexpected error occurred"
         : (err.details ?? err.stack ?? message),
     },

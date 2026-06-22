@@ -26,24 +26,22 @@ declare global {
 
 const authenticate = () => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    // Soft auth: if a valid token is present, attach req.user. Anything wrong
+    // with the token (missing, malformed, expired, revoked) → silently leave
+    // req.user unset and let per-route guards decide. This keeps public
+    // endpoints (register/login/etc.) reachable even when the client holds a
+    // stale token in storage.
     try {
       const authHeader = req.headers["authorization"];
-      if (!authHeader) return next();
-      if (!authHeader?.startsWith("Bearer")) {
-        throw new UnauthorizedError("Invalid Authorization header format");
-      }
-      const token = authHeader.split(" ")[1];
-      if (!token) {
-        throw new UnauthorizedError("Token not provided");
-      }
-      const user = verifyAccessToken(token);
-      if (!user) {
-        throw new UnauthorizedError("Invalid or expired token");
-      }
+      if (!authHeader || !authHeader.startsWith("Bearer")) return next();
 
-      if (user.jti && (await isTokenRevoked(user.jti))) {
-        throw new UnauthorizedError("Token has been revoked");
-      }
+      const token = authHeader.split(" ")[1];
+      if (!token) return next();
+
+      const user = verifyAccessToken(token);
+      if (!user) return next();
+
+      if (user.jti && (await isTokenRevoked(user.jti))) return next();
 
       const { iss, sub, email, email_verified, name, picture, role, jti, exp } =
         user;
@@ -59,10 +57,9 @@ const authenticate = () => {
         jti,
         exp,
       };
-
-      next();
-    } catch (err) {
-      next(err);
+      return next();
+    } catch {
+      return next();
     }
   };
 };

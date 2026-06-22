@@ -8,7 +8,20 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+const PUBLIC_PATHS = [
+  '/api/auth/register',
+  '/api/auth/login',
+  '/api/auth/refresh',
+  '/api/auth/verify',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+]
+
 api.interceptors.request.use((config) => {
+  const url = config.url ?? ''
+  const isPublic = PUBLIC_PATHS.some((p) => url.includes(p))
+  if (isPublic) return config
+
   const token = tokenStore.getAccess()
   if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
   return config
