@@ -177,7 +177,7 @@ const login = async ({
   password: string;
   clientId?: string | undefined;
 }) => {
-  let user = await checkUserWithEmailExists(email);
+  const user = await checkUserWithEmailExists(email);
 
   if (!user) throw new UnauthorizedError("Invalid email or password");
 
@@ -185,18 +185,6 @@ const login = async ({
     user.password && (await bcrypt.compare(password, user.password));
 
   if (!result) throw new UnauthorizedError("Invalid email or password");
-
-  // Direct email/password login (no OIDC consent flow) → developer using the
-  // iLogin dashboard. Promote pre-existing accounts that are still default
-  // `user` / unverified so they can manage OAuth clients. We never downgrade
-  // (super_admin stays super_admin) and never touch users mid-OIDC flow.
-  if (!clientId && (user.role === USER || !user.isVerified)) {
-    await updateUserInfo(
-      { id: user.id },
-      { role: ADMIN, isVerified: true },
-    );
-    user = { ...user, role: ADMIN, isVerified: true };
-  }
 
   const claims: AccessTokenClaims = {
     iss: env.ISSUER_URL || "http://localhost:9000",
