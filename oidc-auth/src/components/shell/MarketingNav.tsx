@@ -38,10 +38,15 @@ export function MarketingNav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="gap-1.5">
-            <Github className="size-3.5" />
-            <span className="hidden sm:inline">GitHub</span>
-          </Button>
+          <a
+            href="https://github.com/visshnnu-tejaa-98/gatekeeper"
+            target="_blank"
+          >
+            <Button variant="ghost" size="sm" className="gap-1.5">
+              <Github className="size-3.5" />
+              <span className="hidden sm:inline">GitHub</span>
+            </Button>
+          </a>
           {loggedIn ? (
             <Link to="/dashboard">
               <Button variant="primary" size="sm" className="gap-1.5">
@@ -53,7 +58,9 @@ export function MarketingNav() {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm">Sign in</Button>
+                <Button variant="ghost" size="sm">
+                  Sign in
+                </Button>
               </Link>
               <Link to="/signup">
                 <Button variant="primary" size="sm" className="gap-1">
