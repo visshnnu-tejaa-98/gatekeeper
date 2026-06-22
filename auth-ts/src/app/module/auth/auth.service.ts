@@ -35,7 +35,7 @@ import {
   updateUserWithResetToken,
   uploadAvatarInDB,
 } from "./auth.utils";
-import { DEVELOPMENT, FIXED_SCOPES, USER } from "../../common/constants";
+import { ADMIN, DEVELOPMENT, FIXED_SCOPES, USER } from "../../common/constants";
 import { env } from "../../common/zod/env";
 import { fileUpload } from "../../common/utils/imagekit";
 import {
@@ -71,10 +71,17 @@ const register = async ({
   const salt = await generateSalt(10);
   const hashedPassword = await hash(password, salt);
 
+  // Direct email/password signup (no OIDC consent flow) → developer registering
+  // on the iLogin dashboard → grant admin + auto-verify so they can create
+  // OAuth clients immediately. Signups initiated via /authorize?client_id=...
+  // are end-users of a third-party app and remain default `user` / unverified.
+  const isDirectSignup = !clientId;
+
   const [user] = await insertUser({
     name,
     email,
     password: hashedPassword,
+    ...(isDirectSignup ? { role: ADMIN, isVerified: true } : {}),
   });
 
   if (!user) {
@@ -85,7 +92,7 @@ const register = async ({
     iss: env.ISSUER_URL || "http://localhost:9000",
     sub: user.id.toString(),
     email: user.email,
-    email_verified: true,
+    email_verified: user.isVerified ?? false,
     name: user.name,
     picture: user.avatar ?? "",
     role: user.role,
@@ -93,14 +100,11 @@ const register = async ({
 
   if (!clientId) {
     const accessToken = generateAccessToken(claims);
-    const refreshToken = generateRefeshToken({ id: user?.id!, role: USER });
+    const refreshToken = generateRefeshToken({ id: user.id, role: user.role });
     const hashedRefreshToken = hashToken(refreshToken);
 
-    const updatedUser = await updateUserWithRefreshToken(
-      hashedRefreshToken,
-      email,
-    );
-    return { id: user?.id, accessToken };
+    await updateUserWithRefreshToken(hashedRefreshToken, email);
+    return { id: user.id, accessToken };
   }
   const { name: applicationName } = await getApplicationByClientId(clientId);
   const consentToken = generateConsentToken({ userId: user.id, clientId });
@@ -116,7 +120,7 @@ const verifyUserEmailRequest = async (email: string) => {
   const verificationToken = generateVerifyEmailToken({ email, role: USER });
   const hashedVerificationToken = hashToken(verificationToken);
 
-  const updatedUser = await updateUserInfo(
+  await updateUserInfo(
     { email },
     { verificationToken: hashedVerificationToken },
   );
@@ -173,7 +177,7 @@ const login = async ({
   password: string;
   clientId?: string | undefined;
 }) => {
-  const user = await checkUserWithEmailExists(email);
+  let user = await checkUserWithEmailExists(email);
 
   if (!user) throw new UnauthorizedError("Invalid email or password");
 
@@ -181,6 +185,18 @@ const login = async ({
     user.password && (await bcrypt.compare(password, user.password));
 
   if (!result) throw new UnauthorizedError("Invalid email or password");
+
+  // Direct email/password login (no OIDC consent flow) → developer using the
+  // iLogin dashboard. Promote pre-existing accounts that are still default
+  // `user` / unverified so they can manage OAuth clients. We never downgrade
+  // (super_admin stays super_admin) and never touch users mid-OIDC flow.
+  if (!clientId && (user.role === USER || !user.isVerified)) {
+    await updateUserInfo(
+      { id: user.id },
+      { role: ADMIN, isVerified: true },
+    );
+    user = { ...user, role: ADMIN, isVerified: true };
+  }
 
   const claims: AccessTokenClaims = {
     iss: env.ISSUER_URL || "http://localhost:9000",
@@ -197,13 +213,10 @@ const login = async ({
     const refreshToken = generateRefeshToken({ id: user.id, role: user.role });
     const hashedRefreshToken = hashToken(refreshToken);
 
-    const updatedUser = await updateUserWithRefreshToken(
-      hashedRefreshToken,
-      email,
-    );
+    await updateUserWithRefreshToken(hashedRefreshToken, email);
 
     return {
-      id: updatedUser.id,
+      id: user.id,
       accessToken,
     };
   }

@@ -15,6 +15,8 @@ type InsertUserServicePayload = {
   name: string;
   email: string;
   password: string;
+  role?: (typeof usersTable.$inferInsert)["role"];
+  isVerified?: boolean;
 };
 
 type UserLookup =
@@ -48,6 +50,8 @@ const insertUser = async ({
   name,
   email,
   password,
+  role,
+  isVerified,
 }: InsertUserServicePayload) => {
   const userId = await db
     .insert(usersTable)
@@ -55,6 +59,8 @@ const insertUser = async ({
       name,
       email,
       password,
+      ...(role !== undefined ? { role } : {}),
+      ...(isVerified !== undefined ? { isVerified } : {}),
       updatedAt: new Date(),
     })
     .returning({
@@ -63,6 +69,7 @@ const insertUser = async ({
       name: usersTable.name,
       role: usersTable.role,
       avatar: usersTable.avatar,
+      isVerified: usersTable.isVerified,
     });
   return userId;
 };
