@@ -1,12 +1,12 @@
-# Gatekeeper (iLogin)
+# Iloggin (iLogin)
 
 A self-hosted identity platform — an open alternative to Okta, Auth0, and Clerk. Provides authentication, an OAuth2 / OpenID Connect provider, a developer dashboard for managing OAuth clients, and admin-level user management.
 
 This monorepo contains two projects:
 
-| Project | Stack | Purpose |
-| --- | --- | --- |
-| [`auth-ts`](./auth-ts) | Node.js · Express 5 · TypeScript · PostgreSQL · Drizzle ORM | Identity & OIDC provider backend |
+| Project                    | Stack                                                              | Purpose                                              |
+| -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
+| [`auth-ts`](./auth-ts)     | Node.js · Express 5 · TypeScript · PostgreSQL · Drizzle ORM        | Identity & OIDC provider backend                     |
 | [`oidc-auth`](./oidc-auth) | TanStack Start · React 19 · TanStack Router/Query · TailwindCSS v4 | Login, consent screen, and developer/admin dashboard |
 
 For the full design, see [`sds.md`](./sds.md). For the product vision and roadmap, see [`prd.md`](./prd.md).
@@ -42,6 +42,7 @@ For the full design, see [`sds.md`](./sds.md). For the product vision and roadma
 ## Implemented Features
 
 ### Authentication — `/api/auth`
+
 - Email + password signup and login (bcryptjs hashed)
 - Logout with JWT revocation via `jti` (stateless tokens, DB-backed revocation list)
 - Refresh-token rotation with SHA-256 hashed storage
@@ -53,6 +54,7 @@ For the full design, see [`sds.md`](./sds.md). For the product vision and roadma
 - Global `authenticate()` middleware that decodes the bearer token, checks the revocation list, and attaches `req.user`
 
 ### OIDC / OAuth2 Provider — `/o`
+
 - Discovery document at `/.well-known/openid-configuration`
 - JWKS endpoint at `/o/jwks.json` (RSA public key)
 - **PKCE flow** for SPAs and mobile: `/o/authorize` → `/o/consent` → `/o/token` with `code_verifier` ↔ `code_challenge` (SHA-256) verification
@@ -63,6 +65,7 @@ For the full design, see [`sds.md`](./sds.md). For the product vision and roadma
 - Authenticated `/o/userInfo` and `/o/token` claims read
 
 ### Developer Dashboard (OAuth client management) — `/o`
+
 - `POST /o/register-client` — register an application (admin only)
 - `GET /o/applications` — list (admin sees own, super_admin sees all)
 - `GET /o/application/:id`
@@ -72,6 +75,7 @@ For the full design, see [`sds.md`](./sds.md). For the product vision and roadma
 - Plain `client_secret` is returned **only once** at creation/rotation; only the SHA-256 hash is persisted
 
 ### User Management — `/api/users`
+
 - `GET /api/users` — list all users (super_admin)
 - `GET /api/users/:id` — own profile or any (super_admin)
 - `PATCH /api/users/:id` — profile updates; only super_admin can change `role`
@@ -80,6 +84,7 @@ For the full design, see [`sds.md`](./sds.md). For the product vision and roadma
 - Never returns `password`, `refreshToken`, `resetToken`, or `verificationToken`
 
 ### Frontend (`oidc-auth`)
+
 - File-based routes via TanStack Router: `login`, `signup`, `forgot-password`, `reset-password`, `verify-email`, `authorize` (PKCE entry), `docs`, marketing pages
 - Authenticated dashboard at `/dashboard` with sub-pages for `applications` (list / detail / new), `users`, `profile`, `tokens`, `sessions`, `settings`
 - Server-side data flow with TanStack Query + Axios services in `src/services/`
@@ -89,11 +94,11 @@ For the full design, see [`sds.md`](./sds.md). For the product vision and roadma
 
 ## Roles & Access
 
-| Role | Capabilities |
-| --- | --- |
-| `user` | Default. Read/update own profile, complete OIDC consent flows |
-| `admin` | Register and manage their own OAuth applications |
-| `super_admin` | Full access across all users and applications |
+| Role          | Capabilities                                                  |
+| ------------- | ------------------------------------------------------------- |
+| `user`        | Default. Read/update own profile, complete OIDC consent flows |
+| `admin`       | Register and manage their own OAuth applications              |
+| `super_admin` | Full access across all users and applications                 |
 
 See the full matrix in [`sds.md` § 12](./sds.md).
 
@@ -116,6 +121,7 @@ Migrations live in [`auth-ts/drizzle/`](./auth-ts/drizzle).
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (ESM-capable, v20+ recommended)
 - PostgreSQL 17 (a `docker-compose.yml` is provided in `auth-ts/`)
 - SMTP credentials for email (Nodemailer) and ImageKit credentials for avatar uploads
@@ -186,7 +192,7 @@ Other scripts: `npm run build`, `npm run preview`, `npm run test` (Vitest), `npm
 ### Non-PKCE (backend RPs that can hold a `client_secret`)
 
 ```
-1.  User -> RP -> redirect to gatekeeper frontend
+1.  User -> RP -> redirect to iloggin frontend
 2.  POST /api/auth/login?client_id=<id>          -> { consentToken, applicationName, scopes }
 3.  Show consent UI -> POST /o/consent           -> { redirectUriWithShortcode }
 4.  Browser -> RP callback ?code=<shortcode>
@@ -232,7 +238,7 @@ From [`prd.md`](./prd.md) and [`sds.md` § 13](./sds.md):
 ## Project Layout
 
 ```
-gatekeeper/
+iloggin/
 ├── auth-ts/             # Express API — identity + OIDC provider
 │   ├── src/
 │   │   ├── app/

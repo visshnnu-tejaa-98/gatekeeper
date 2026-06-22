@@ -2,13 +2,12 @@ import {
   pgTable,
   varchar,
   boolean,
-  date,
   timestamp,
   text,
   uuid,
   pgEnum,
 } from "drizzle-orm/pg-core";
-import { ALLOWED_ROLES, USER } from "../app/common/constants";
+import { ADMIN, ALLOWED_ROLES } from "../app/common/constants";
 
 export const userRoleEnum = pgEnum("user_role", ALLOWED_ROLES);
 
@@ -17,11 +16,11 @@ export const usersTable = pgTable("users", {
 
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
-  role: userRoleEnum("role").default(USER).notNull(),
+  role: userRoleEnum("role").default(ADMIN).notNull(),
 
   password: text("password"),
 
-  isVerified: boolean("is_verified").default(false),
+  isVerified: boolean("is_verified").default(true),
   verificationToken: text("verification_token"),
 
   refreshToken: text("refresh_token"),

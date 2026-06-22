@@ -1,9 +1,9 @@
 import z from "zod";
 import {
+  ADMIN,
   ALLOWED_FILE_TYPES,
   ALLOWED_ROLES,
   MAX_AVATAR_FILE_SIZE,
-  USER,
 } from "../../common/constants";
 
 const registerSchema = z.object({
@@ -21,7 +21,7 @@ const registerSchema = z.object({
       .min(8)
       .max(100)
       .describe("Password of the regsitrant"),
-    role: z.enum(ALLOWED_ROLES).default(USER),
+    role: z.enum(ALLOWED_ROLES).default(ADMIN),
   }),
   query: z.object({
     client_id: z.string().optional(),
