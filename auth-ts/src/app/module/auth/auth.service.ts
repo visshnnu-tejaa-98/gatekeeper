@@ -85,7 +85,7 @@ const register = async ({
     iss: env.ISSUER_URL || "http://localhost:9000",
     sub: user.id.toString(),
     email: user.email,
-    email_verified: false,
+    email_verified: true,
     name: user.name,
     picture: user.avatar ?? "",
     role: user.role,
